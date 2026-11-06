@@ -1,0 +1,18 @@
+{
+  "name": "라임 스캐너",
+  "short_name": "라임 스캐너",
+  "description": "한국어·영어 랩 가사의 라임을 찾아 하이라이트·점수·구조도·추천 단어로 보여주는 분석기",
+  "lang": "ko",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0e0e0d",
+  "theme_color": "#141413",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

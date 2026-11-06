@@ -140,6 +140,7 @@ export function analyzeRhymes(pron, options = {}) {
             const repeat = L === 1 ? U[a].wkey === U[b].wkey && pron.words[U[a].word].text === pron.words[U[b].word].text : segKey(a, L) === segKey(b, L);
             if (L === 1) {
               if (U[a].ep || U[b].ep) continue;
+              if (U[a].gram && U[b].gram) continue;   // 했다/먹었다의 '다' 같은 어미끼리는 1음절 라임으로 보지 않음
               if (!isEnd && !(alignEnd && m.c >= 0.6)) continue;
             } else {
               if (m.sim < P.T + 0.02 * d) continue;      // 멀수록 더 닮아야 함

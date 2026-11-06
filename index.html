@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>라임 스캐너</title>
+<meta name="description" content="한국어·영어가 섞인 랩 가사의 라임을 찾아 색깔 하이라이트, 점수, 구조도, 추천 단어로 보여주는 분석기">
+<meta name="theme-color" content="#141413">
+<meta name="color-scheme" content="dark light">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="라임 스캐너">
+<link rel="stylesheet" href="css/style.css">
+<script>
+  // 저장된 테마를 먼저 적용해 깜빡임 방지 (기본: 다크)
+  try { var t = localStorage.getItem('rhyme.theme') || 'dark'; if (t === 'system') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'; document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="2" fill="currentColor"/><path d="m4 18 5-5 4 4 3-3 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 7-5 5 5 5M16 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+</svg>
+
+<header class="top">
+  <div class="brand">
+    <img class="logo" src="icons/icon-192.png" alt="" width="28" height="28">
+    <h1>라임 스캐너</h1>
+  </div>
+  <div class="top-actions">
+    <button id="btn-recent" class="icon-btn" type="button" aria-label="최근 분석한 가사"><svg><use href="#i-clock"/></svg></button>
+    <button id="btn-settings" class="icon-btn" type="button" aria-label="설정"><svg><use href="#i-gear"/></svg></button>
+  </div>
+</header>
+
+<main id="main">
+  <section class="card input-card" aria-label="가사 입력">
+    <label for="lyrics" class="sr-only">가사</label>
+    <textarea id="lyrics" rows="8" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"
+      placeholder="랩 가사를 붙여 넣으세요 (한국어 + 영어)&#10;빈 줄은 벌스 구분, [Verse]·[Hook] 같은 머리말은 제외됩니다."></textarea>
+    <div class="input-meta">
+      <span id="char-count" class="muted">0줄</span>
+      <span class="spacer"></span>
+      <button id="btn-sample" class="link" type="button">예시 가사</button>
+      <button id="btn-clear" class="link" type="button">지우기</button>
+    </div>
+    <details class="options" id="options">
+      <summary>분석 옵션</summary>
+      <div class="opt-row">
+        <label class="switch"><input type="checkbox" id="opt-vowel" checked><span class="track"></span><span>모음만 같아도 라임 인정</span></label>
+      </div>
+      <div class="opt-row">
+        <span class="opt-label">최소 라임 음절 수</span>
+        <div class="seg" role="radiogroup" aria-label="최소 라임 음절 수" id="opt-minlen">
+          <button type="button" role="radio" data-v="1" aria-checked="true">1</button>
+          <button type="button" role="radio" data-v="2" aria-checked="false">2</button>
+          <button type="button" role="radio" data-v="3" aria-checked="false">3</button>
+          <button type="button" role="radio" data-v="4" aria-checked="false">4</button>
+        </div>
+      </div>
+      <div class="opt-row col">
+        <label for="opt-sens" class="opt-label">판정 민감도 <output id="opt-sens-out">50</output></label>
+        <input type="range" id="opt-sens" min="0" max="100" step="5" value="50">
+        <div class="range-ends muted"><span>엄격하게</span><span>느슨하게</span></div>
+      </div>
+    </details>
+    <button id="btn-analyze" class="primary big" type="button">분석하기</button>
+  </section>
+
+  <nav class="tabs" role="tablist" aria-label="결과">
+    <button role="tab" type="button" id="tab-hl" aria-controls="panel-hl" aria-selected="true">하이라이트</button>
+    <button role="tab" type="button" id="tab-score" aria-controls="panel-score" aria-selected="false" tabindex="-1">점수</button>
+    <button role="tab" type="button" id="tab-struct" aria-controls="panel-struct" aria-selected="false" tabindex="-1">구조도</button>
+    <button role="tab" type="button" id="tab-rec" aria-controls="panel-rec" aria-selected="false" tabindex="-1">추천</button>
+  </nav>
+
+  <section id="panel-hl" class="panel" role="tabpanel" aria-labelledby="tab-hl">
+    <div class="empty">가사를 붙여 넣고 <b>분석하기</b>를 누르면 라임이 색깔로 표시됩니다.</div>
+  </section>
+  <section id="panel-score" class="panel" role="tabpanel" aria-labelledby="tab-score" hidden>
+    <div class="empty">분석 후 점수가 표시됩니다.</div>
+  </section>
+  <section id="panel-struct" class="panel" role="tabpanel" aria-labelledby="tab-struct" hidden>
+    <div class="empty">분석 후 끝라임 구조와 매트릭스가 표시됩니다.</div>
+  </section>
+  <section id="panel-rec" class="panel" role="tabpanel" aria-labelledby="tab-rec" hidden>
+    <form id="rec-form" class="rec-form" autocomplete="off">
+      <label for="rec-input" class="sr-only">단어</label>
+      <input id="rec-input" type="search" enterkeyhint="search" placeholder="단어 입력 (예: 머니, flow, 갈망)">
+      <button class="primary" type="submit">찾기</button>
+    </form>
+    <div class="rec-filters">
+      <div class="seg small" role="radiogroup" aria-label="언어" id="rec-lang">
+        <button type="button" role="radio" data-v="all" aria-checked="true">전체</button>
+        <button type="button" role="radio" data-v="ko" aria-checked="false">한국어</button>
+        <button type="button" role="radio" data-v="en" aria-checked="false">영어</button>
+      </div>
+      <label class="switch small"><input type="checkbox" id="rec-coda"><span class="track"></span><span>받침까지</span></label>
+    </div>
+    <div id="rec-out"><div class="empty">입력한 단어와 모음 패턴이 맞는 한국어·영어 단어를 음절 수별로 보여줍니다.</div></div>
+  </section>
+
+  <div class="export-bar" id="export-bar" hidden>
+    <button type="button" id="btn-image"><svg><use href="#i-image"/></svg>이미지 저장</button>
+    <button type="button" id="btn-copy"><svg><use href="#i-copy"/></svg>텍스트 복사</button>
+    <button type="button" id="btn-json"><svg><use href="#i-code"/></svg>JSON</button>
+  </div>
+</main>
+
+<footer class="foot">
+  <span id="ver">v—</span>
+  <span id="dict-status" class="muted">사전 불러오는 중…</span>
+  <span id="sw-status" class="muted"></span>
+</footer>
+
+<div id="sheet" class="sheet" hidden>
+  <div class="sheet-backdrop" data-close></div>
+  <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet-head">
+      <h2 id="sheet-title"></h2>
+      <button class="icon-btn" type="button" data-close aria-label="닫기"><svg><use href="#i-close"/></svg></button>
+    </div>
+    <div class="sheet-body" id="sheet-body"></div>
+  </div>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
