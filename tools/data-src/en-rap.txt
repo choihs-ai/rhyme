@@ -1,0 +1,1147 @@
+# 랩 영어 단어 예외 사전 (단어 발음)
+# 형식: 단어 한글발음 [-]   (- 표시는 추천 목록에서 제외: 기능어·욕설 등)
+# 삽입모음(원래 영어에 모음이 없는 음절)은 ' 로 표시할 수 있다. 표시가 없으면 'ㅡ' 음절을 삽입모음으로 본다.
+# --- 기능어 / 대명사 ---
+i 아이 -
+me 미 -
+my 마이 -
+mine 마인
+myself 마이셀프 -
+you 유 -
+your 유어 -
+yours 유어스 -
+yourself 유어셀프 -
+we 위 -
+us 어스 -
+our 아워 -
+they 데이 -
+them 뎀 -
+their 데어 -
+he 히 -
+she 쉬 -
+him 힘 -
+her 허 -
+it 잇 -
+its 잇츠 -
+the 더 -
+a 어 -
+an 언 -
+and 앤 -
+or 오어 -
+but 벗 -
+so 소
+to 투 -
+too 투
+for 포 -
+of 오브 -
+in 인 -
+on 온 -
+at 앳 -
+up 업
+down 다운
+out 아웃
+off 오프
+with 위드 -
+without 위다웃
+from 프롬 -
+by 바이
+like 라이크
+just 저스트 -
+all 올
+yes 예스
+no 노
+not 낫 -
+now 나우
+then 덴 -
+when 웬 -
+what 왓 -
+who 후 -
+why 와이
+how 하우 -
+where 웨어 -
+this 디스 -
+that 댓 -
+these 디즈 -
+those 도즈 -
+here 히어
+there 데어
+is 이즈 -
+are 아 -
+am 엠 -
+was 워즈 -
+were 워 -
+be 비 -
+been 빈 -
+do 두 -
+does 더즈 -
+did 디드 -
+done 던
+have 해브 -
+has 해즈 -
+had 해드 -
+get 겟
+got 갓
+go 고
+gone 곤
+going 고잉
+come 컴
+can 캔 -
+could 쿠드 -
+will 윌 -
+would 우드 -
+should 슈드 -
+must 머스트 -
+may 메이 -
+might 마이트 -
+if 이프 -
+than 댄 -
+very 베리 -
+some 썸 -
+any 애니 -
+every 에브리 -
+each 이치 -
+only 온리
+still 스틸
+again 어게인
+back 백
+over 오버
+into 인투 -
+onto 온투 -
+about 어바웃
+around 어라운드
+away 어웨이
+because 비커즈 -
+before 비포
+after 애프터
+until 언틸 -
+while 와일 -
+through 쓰루
+# --- 축약형 / 구어 ---
+i'm 아임 -
+i'll 아일 -
+i've 아이브 -
+i'd 아이드 -
+you're 유어 -
+you'll 유일 -
+you've 유브 -
+we're 위어 -
+they're 데어 -
+it's 잇츠 -
+that's 댓츠 -
+what's 왓츠 -
+he's 히즈 -
+she's 쉬즈 -
+let's 렛츠
+don't 돈트 -
+doesn't 더즌트 -
+didn't 디든트 -
+can't 캔트 -
+won't 원트 -
+ain't 에인트 -
+isn't 이즌트 -
+wasn't 워즌트 -
+couldn't 쿠든트 -
+wouldn't 우든트 -
+shouldn't 슈든트 -
+gonna 거너
+wanna 워너
+gotta 가러
+gimme 기미
+lemme 레미
+kinda 카인더
+sorta 소러
+outta 아우러
+tryna 트라이나
+finna 피나
+y'all 야알
+ya 야
+yo 요
+yeah 예
+yea 예
+yup 엽
+yep 옙
+nah 나
+nope 놉
+'cause 커즈 -
+cause 커즈 -
+cuz 커즈 -
+'em 엠 -
+em 엠 -
+'til 틸 -
+til 틸 -
+bout 바웃 -
+'bout 바웃 -
+ok 오케이
+okay 오케이
+uh 어 -
+huh 허 -
+hey 헤이
+oh 오
+ooh 우
+woo 우
+whoa 워우
+wow 와우
+ayy 에이
+ay 에이
+aye 에이
+skrrt 스커트
+brr 브르 -
+damn 댐 -
+dang 댕
+shit 싯 -
+fuck 퍽 -
+fuckin 퍼킨 -
+fucking 퍼킹 -
+bitch 비치 -
+bitches 비치즈 -
+hoe 호 -
+hoes 호즈 -
+ass 애스 -
+goddamn 갓댐 -
+motherfucker 마더퍼커 -
+# --- 힙합 문화 ---
+rap 랩
+rapper 래퍼
+rappers 래퍼스
+rapping 래핑
+hip 힙
+hop 합
+hiphop 힙합
+flow 플로우
+flows 플로우즈
+beat 비트
+beats 비츠
+bar 바
+bars 바스
+verse 벌스
+hook 훅
+rhyme 라임
+rhymes 라임즈
+mic 마이크
+microphone 마이크로폰
+track 트랙
+tracks 트랙스
+record 레코드
+album 앨범
+mixtape 믹스테잎
+single 싱글
+feat 핏
+feature 피처
+remix 리믹스
+freestyle 프리스타일
+cypher 사이퍼
+battle 배틀
+crew 크루
+squad 스쿼드
+gang 갱
+team 팀
+fam 팸
+family 패밀리
+homie 호미
+homies 호미즈
+bro 브로
+brother 브라더
+sister 시스터
+dawg 독
+dog 독
+boy 보이
+boys 보이즈
+girl 걸
+girls 걸스
+baby 베이비
+babe 베이브
+honey 허니
+lady 레이디
+mama 마마
+papa 파파
+daddy 대디
+king 킹
+queen 퀸
+boss 보스
+chief 치프
+legend 레전드
+legendary 레전더리
+goat 고트
+icon 아이콘
+star 스타
+stars 스타즈
+superstar 슈퍼스타
+rockstar 락스타
+hero 히어로
+villain 빌런
+player 플레이어
+hater 헤이터
+haters 헤이터스
+fan 팬
+fans 팬스
+fake 페이크
+real 리얼
+realest 리얼리스트
+really 리얼리
+true 트루
+truth 트루스
+lie 라이
+lies 라이즈
+liar 라이어
+# --- 돈 / 플렉스 ---
+money 머니
+cash 캐시
+dollar 달러
+dollars 달러즈
+bank 뱅크
+rich 리치
+richer 리처
+wealth 웰스
+broke 브로크
+poor 푸어
+paper 페이퍼
+check 체크
+bill 빌
+bills 빌즈
+gold 골드
+golden 골든
+diamond 다이아몬드
+diamonds 다이아몬즈
+chain 체인
+chains 체인즈
+ice 아이스
+icy 아이시
+drip 드립
+swag 스웩
+swagger 스웨거
+style 스타일
+fresh 프레시
+flex 플렉스
+flexing 플렉싱
+flexin 플렉신
+shine 샤인
+shining 샤이닝
+bling 블링
+luxury 럭셔리
+brand 브랜드
+designer 디자이너
+gucci 구찌
+prada 프라다
+louis 루이
+chanel 샤넬
+versace 베르사체
+rolex 롤렉스
+benz 벤츠
+bentley 벤틀리
+ferrari 페라리
+lambo 람보
+lamborghini 람보르기니
+porsche 포르쉐
+whip 윕
+ride 라이드
+car 카
+cars 카스
+jet 젯
+private 프라이빗
+mansion 맨션
+penthouse 펜트하우스
+house 하우스
+home 홈
+crib 크립
+million 밀리언
+millions 밀리언스
+billion 빌리언
+billionaire 빌리어네어
+millionaire 밀리어네어
+stack 스택
+stacks 스택스
+racks 랙스
+bands 밴즈
+profit 프로핏
+invest 인베스트
+pay 페이
+paid 페이드
+price 프라이스
+cost 코스트
+value 밸류
+worth 워스
+buy 바이
+sell 셀
+deal 딜
+business 비즈니스
+hustle 허슬
+hustler 허슬러
+grind 그라인드
+grinding 그라인딩
+work 워크
+job 잡
+# --- 거리 / 장소 ---
+block 블록
+street 스트릿
+streets 스트릿츠
+hood 후드
+city 시티
+town 타운
+seoul 서울
+korea 코리아
+world 월드
+global 글로벌
+studio 스튜디오
+stage 스테이지
+club 클럽
+party 파티
+road 로드
+way 웨이
+highway 하이웨이
+map 맵
+east 이스트
+west 웨스트
+coast 코스트
+south 사우스
+north 노스
+ocean 오션
+sea 씨
+wave 웨이브
+waves 웨이브스
+water 워터
+# --- 게임 / 경쟁 ---
+game 게임
+play 플레이
+win 윈
+winner 위너
+winning 위닝
+lose 루즈
+loser 루저
+top 탑
+number 넘버
+one 원
+two 투
+three 쓰리
+four 포
+five 파이브
+six 식스
+seven 세븐
+eight 에잇
+nine 나인
+ten 텐
+first 퍼스트
+last 라스트
+best 베스트
+worst 워스트
+level 레벨
+next 넥스트
+new 뉴
+old 올드
+school 스쿨
+young 영
+youth 유스
+kid 키드
+kids 키즈
+rookie 루키
+champion 챔피언
+champ 챔프
+trophy 트로피
+crown 크라운
+throne 스로운
+gold 골드
+# --- 삶 / 죽음 / 싸움 ---
+life 라이프
+live 리브
+alive 얼라이브
+die 다이
+dead 데드
+death 데스
+kill 킬
+killer 킬러
+killin 킬린
+murder 머더
+shot 샷
+shots 샷츠
+shoot 슛
+gun 건
+guns 건즈
+bullet 불릿
+fight 파이트
+fighter 파이터
+war 워
+soldier 솔져
+army 아미
+enemy 에너미
+enemies 에너미즈
+power 파워
+control 컨트롤
+rule 룰
+rules 룰즈
+law 로
+crime 크라임
+police 폴리스
+cops 캅스
+jail 제일
+prison 프리즌
+free 프리
+freedom 프리덤
+danger 데인저
+dangerous 데인저러스
+risk 리스크
+trouble 트러블
+problem 프라블럼
+problems 프라블럼스
+# --- 꿈 / 마음 ---
+dream 드림
+dreams 드림즈
+dreamer 드리머
+goal 골
+goals 골즈
+hope 호프
+faith 페이스
+pray 프레이
+god 갓
+lord 로드
+heaven 헤븐
+hell 헬
+devil 데빌
+angel 엔젤
+soul 소울
+spirit 스피릿
+mind 마인드
+heart 하트
+love 러브
+lover 러버
+loving 러빙
+hate 헤이트
+pain 페인
+hurt 허트
+cry 크라이
+crying 크라잉
+tears 티어스
+smile 스마일
+happy 해피
+sad 새드
+mad 매드
+crazy 크레이지
+insane 인세인
+wild 와일드
+cool 쿨
+hot 핫
+cold 콜드
+fire 파이어
+flame 플레임
+flames 플레임즈
+burn 번
+burning 버닝
+smoke 스모크
+smoking 스모킹
+high 하이
+higher 하이어
+low 로우
+lower 로워
+sky 스카이
+fly 플라이
+flying 플라잉
+moon 문
+sun 선
+sunshine 선샤인
+night 나잇
+nights 나잇츠
+day 데이
+days 데이즈
+time 타임
+times 타임즈
+clock 클락
+tick 틱
+tock 톡
+minute 미닛
+second 세컨드
+hour 아워
+hours 아워즈
+forever 포에버
+never 네버
+ever 에버
+always 올웨이즈
+everyday 에브리데이
+everything 에브리띵
+everybody 에브리바디
+everyone 에브리원
+nobody 노바디
+somebody 썸바디
+someone 썸원
+anybody 애니바디
+nothing 낫띵
+something 썸띵
+anything 애니띵
+thing 띵
+things 띵스
+think 띵크
+feel 필
+feeling 필링
+feelings 필링스
+vibe 바이브
+vibes 바이브스
+mood 무드
+energy 에너지
+# --- 움직임 ---
+dance 댄스
+move 무브
+moves 무브스
+groove 그루브
+bounce 바운스
+jump 점프
+shake 셰이크
+rock 락
+roll 롤
+rolling 롤링
+run 런
+running 러닝
+walk 워크
+walking 워킹
+talk 토크
+talking 토킹
+talkin 토킨
+say 세이
+said 세드
+tell 텔
+ask 애스크
+call 콜
+phone 폰
+text 텍스트
+message 메시지
+story 스토리
+history 히스토리
+name 네임
+fame 페임
+famous 페이머스
+hype 하입
+trend 트렌드
+trendy 트렌디
+classic 클래식
+original 오리지널
+legit 레짓
+lit 릿
+dope 도프
+sick 식
+ill 일
+nasty 내스티
+savage 새비지
+beast 비스트
+monster 몬스터
+animal 애니멀
+lion 라이언
+tiger 타이거
+wolf 울프
+snake 스네이크
+rat 랫
+eagle 이글
+dragon 드래곤
+phoenix 피닉스
+shark 샤크
+butterfly 버터플라이
+rose 로즈
+roses 로지즈
+flower 플라워
+blood 블러드
+sweat 스웻
+silver 실버
+platinum 플래티넘
+black 블랙
+white 화이트
+red 레드
+blue 블루
+green 그린
+pink 핑크
+purple 퍼플
+yellow 옐로우
+color 컬러
+colors 컬러스
+light 라잇
+lights 라잇츠
+dark 다크
+darkness 다크니스
+shadow 섀도우
+ghost 고스트
+mirror 미러
+window 윈도우
+door 도어
+wall 월
+floor 플로어
+roof 루프
+bottom 바텀
+side 사이드
+inside 인사이드
+outside 아웃사이드
+front 프론트
+left 레프트
+right 라잇
+path 패스
+rain 레인
+storm 스톰
+thunder 썬더
+lightning 라이트닝
+wind 윈드
+snow 스노우
+summer 써머
+winter 윈터
+spring 스프링
+fall 폴
+season 시즌
+holiday 할리데이
+weekend 위켄드
+morning 모닝
+tonight 투나잇
+tomorrow 투모로우
+today 투데이
+yesterday 예스터데이
+future 퓨처
+past 패스트
+moment 모먼트
+chance 찬스
+choice 초이스
+change 체인지
+chase 체이스
+race 레이스
+pace 페이스
+space 스페이스
+place 플레이스
+face 페이스
+base 베이스
+bass 베이스
+case 케이스
+grace 그레이스
+taste 테이스트
+waste 웨이스트
+lazy 레이지
+busy 비지
+easy 이지
+hard 하드
+soft 소프트
+strong 스트롱
+weak 위크
+fast 패스트
+slow 슬로우
+quick 퀵
+rush 러시
+push 푸시
+pull 풀
+drop 드롭
+pop 팝
+stop 스탑
+shop 샵
+plan 플랜
+plans 플랜즈
+mission 미션
+vision 비전
+focus 포커스
+motion 모션
+emotion 이모션
+potion 포션
+devotion 디보션
+attention 어텐션
+tension 텐션
+pressure 프레셔
+stress 스트레스
+success 석세스
+progress 프로그레스
+process 프로세스
+respect 리스펙트
+perfect 퍼펙트
+effect 이펙트
+connect 커넥트
+reflect 리플렉트
+protect 프로텍트
+project 프로젝트
+direct 다이렉트
+select 셀렉트
+collect 컬렉트
+expect 익스펙트
+# --- 감탄 / 리듬 ---
+uh-huh 어허 -
+mmm 음 -
+hmm 흠 -
+la 라
+na 나
+da 다
+pow 파우
+bang 뱅
+boom 붐
+bam 뱀
+pew 퓨
+yah 야
+yuh 여
+woah 워우
+hello 헬로
+bye 바이
+goodbye 굿바이
+good 굿
+bad 배드
+big 빅
+bag 백
+bags 백스
+sexy 섹시
+pretty 프리티
+beautiful 뷰티풀
+ugly 어글리
+cute 큐트
+sweet 스윗
+honest 어니스트
+humble 험블
+loyal 로열
+royal 로열
+smart 스마트
+genius 지니어스
+dumb 덤
+stupid 스투피드
+silly 실리
+funny 퍼니
+serious 시리어스
+famous 페이머스
+nervous 너버스
+jealous 젤러스
+zealous 젤러스
+ready 레디
+steady 스테디
+heavy 헤비
+deadly 데들리
+deeply 딥리
+slowly 슬로울리
+lonely 론리
+only 온리
+holy 홀리
+sorry 쏘리
+worry 워리
+story 스토리
+glory 글로리
+memory 메모리
+victory 빅토리
+history 히스토리
+mystery 미스터리
+misery 미저리
+fantasy 판타지
+ecstasy 엑스터시
+melody 멜로디
+harmony 하모니
+symphony 심포니
+rhythm 리듬
+music 뮤직
+song 송
+songs 송스
+sound 사운드
+sounds 사운즈
+noise 노이즈
+voice 보이스
+loud 라우드
+quiet 콰이엇
+silence 사일런스
+radio 라디오
+video 비디오
+tv 티비
+camera 카메라
+photo 포토
+picture 픽처
+movie 무비
+scene 씬
+show 쇼
+showtime 쇼타임
+spotlight 스포트라이트
+stage 스테이지
+crowd 크라우드
+fame 페임
+legacy 레거시
+ego 에고
+pride 프라이드
+proud 프라우드
+shame 셰임
+blame 블레임
+same 세임
+claim 클레임
+frame 프레임
+aim 에임
+brain 브레인
+train 트레인
+plane 플레인
+lane 레인
+gain 게인
+main 메인
+insane 인세인
+again 어게인
+remain 리메인
+explain 익스플레인
+champagne 샴페인
+cocaine 코케인
+# --- 술 / 밤 ---
+drink 드링크
+drunk 드렁크
+bottle 바틀
+bottles 바틀스
+shots 샷츠
+wine 와인
+whiskey 위스키
+hennessy 헤네시
+soju 소주
+beer 비어
+cheers 치어스
+smoke 스모크
+weed 위드
+blunt 블런트
+lean 린
+pill 필
+pills 필스
+drug 드럭
+drugs 드럭스
+dealer 딜러
+addict 애딕트
+# --- 일상 / 감정 동사 ---
+need 니드
+want 원트
+know 노우
+see 씨
+look 룩
+watch 워치
+wait 웨이트
+stay 스테이
+leave 리브
+gone 곤
+hold 홀드
+holding 홀딩
+keep 킵
+take 테이크
+make 메이크
+making 메이킹
+break 브레이크
+fake 페이크
+wake 웨이크
+shake 셰이크
+mistake 미스테이크
+give 기브
+live 리브
+forgive 포기브
+believe 빌리브
+achieve 어치브
+receive 리시브
+start 스타트
+end 엔드
+begin 비긴
+finish 피니시
+finally 파이널리
+final 파이널
+open 오픈
+close 클로즈
+lock 락
+key 키
+keys 키즈
+use 유즈
+lose 루즈
+choose 추즈
+news 뉴스
+blues 블루스
+shoes 슈즈
+kicks 킥스
+sneakers 스니커즈
+jordan 조던
+nike 나이키
+hoodie 후디
+jacket 재킷
+jeans 진즈
+fit 핏
+outfit 아웃핏
+look 룩
+looks 룩스
+cap 캡
+hat 햇
+glasses 글래시즈
+shades 셰이즈
+tattoo 타투
+tattoos 타투스
+ink 잉크
+pen 펜
+write 라이트
+writing 라이팅
+read 리드
+book 북
+page 페이지
+letter 레터
+word 워드
+words 워즈
+line 라인
+lines 라인즈
+sign 사인
+mind 마인드
+kind 카인드
+blind 블라인드
+behind 비하인드
+find 파인드
+grind 그라인드
+rewind 리와인드
+remind 리마인드
+design 디자인
+online 온라인
+offline 오프라인
+deadline 데드라인
+headline 헤드라인
+timeline 타임라인
+guideline 가이드라인
+# --- 몸 / 사람 ---
+body 바디
+head 헤드
+hand 핸드
+hands 핸즈
+eye 아이
+eyes 아이즈
+face 페이스
+lips 립스
+mouth 마우스
+tongue 텅
+neck 넥
+chest 체스트
+skin 스킨
+bone 본
+bones 본즈
+blood 블러드
+brain 브레인
+man 맨
+men 맨
+woman 우먼
+women 위민
+people 피플
+person 퍼슨
+human 휴먼
+friend 프렌드
+friends 프렌즈
+enemy 에너미
+stranger 스트레인저
+partner 파트너
+leader 리더
+follower 팔로워
+followers 팔로워즈
+follow 팔로우
+teacher 티처
+doctor 닥터
+lawyer 로이어
+driver 드라이버
+killer 킬러
+boss 보스
+master 마스터
+slave 슬레이브
+judge 저지
+jury 주리
+witness 위트니스
+# --- 기타 자주 쓰는 단어 ---
+yes 예스
+right 라잇
+wrong 롱
+long 롱
+song 송
+strong 스트롱
+along 얼롱
+belong 빌롱
+young 영
+tongue 텅
+sing 싱
+king 킹
+ring 링
+bring 브링
+thing 띵
+wing 윙
+swing 스윙
+spring 스프링
+string 스트링
+bling 블링
+sting 스팅
+ding 딩
+ping 핑
+pong 퐁
+game 게임
+name 네임
+same 세임
+came 케임
+flame 플레임
+fame 페임
+shame 셰임
+blame 블레임
+frame 프레임
+gate 게이트
+late 레이트
+great 그레이트
+state 스테이트
+straight 스트레이트
+weight 웨이트
+date 데이트
+hate 헤이트
+fate 페이트
+plate 플레이트
+skate 스케이트
+create 크리에이트
+rate 레이트
+mate 메이트
+debate 디베이트
+escape 이스케이프
+shape 셰이프
+tape 테이프
+cape 케이프
+grape 그레이프
+rape 레이프 -
+ape 에이프
+trap 트랩
+trapping 트래핑
+snap 스냅
+clap 클랩
+slap 슬랩
+gap 갭
+lap 랩
+cap 캡
+nap 냅
+wrap 랩
+tap 탭
+flip 플립
+trip 트립
+ship 쉽
+chip 칩
+tip 팁
+lip 립
+slip 슬립
+grip 그립
+whip 윕
+zip 집
+script 스크립트
+hit 힛
+hits 힛츠
+bit 빗
+fit 핏
+sit 싯
+split 스플릿
+spit 스핏
+quit 큇
+legit 레짓
+kick 킥
+trick 트릭
+brick 브릭
+click 클릭
+stick 스틱
+thick 띡
+quick 퀵
+pick 픽
+lick 릭
+slick 슬릭
+wick 윅
+block 블락
+clock 클락
+knock 낙
+lock 락
+shock 샥
+stock 스탁
+sock 삭
+rocket 로켓
+pocket 포켓
+jacket 재킷
+ticket 티켓
+market 마켓
+target 타겟
+secret 시크릿
+regret 리그렛
+forget 포겟
+bet 벳
+net 넷
+set 셋
+sunset 선셋
+upset 업셋
+asset 애셋
+reset 리셋
+wet 웻
+threat 쓰렛
+debt 뎃
+sweat 스웻
+jet 젯
+vet 벳
