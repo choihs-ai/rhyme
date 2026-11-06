@@ -62,6 +62,8 @@ export function applyPhonology(S) {
       if (s.cho !== 'ㅇ' || i > 0) s.jung = 'ㅣ';
     }
     if ((s.cho === 'ㅈ' || s.cho === 'ㅉ' || s.cho === 'ㅊ') && DEGLIDE[s.jung]) s.jung = DEGLIDE[s.jung];
+    // 영어 sh 표기(쇼·샤·셔·슈)의 반모음은 표기상 관습 → 모음 핵만 남김 (show=ㅗ, go 와 라임)
+    else if ((s.cho === 'ㅅ' || s.cho === 'ㅆ') && s.en && DEGLIDE[s.jung]) { s.disp = s.disp || compose(s.cho, s.jung, s.jong); s.jung = DEGLIDE[s.jung]; }
     if (s.jung === 'ㅖ' && s.cho !== 'ㅇ' && s.cho !== 'ㄹ') s.jung = 'ㅔ'; // 계→게
   }
   return S;
@@ -765,15 +767,18 @@ function convertWord(w, overrides) {
     });
   }
   word.lang = langs.size === 1 ? [...langs][0] : 'mix';
-  word.orth = units.map(u => compose(u.cho, u.jung, u.jong) + (u.tail || '')).join('');
+  word.orth = units.map(u => (u.tail ? compose(u.cho, u.jung, '') + compose('ㅇ', 'ㅜ', u.jong) : compose(u.cho, u.jung, u.jong))).join('');
   // 음운 규칙 적용 (복사본)
-  const pron = units.map(u => ({ cho: u.cho, jung: u.jung, jong: u.jong }));
+  const pron = units.map(u => ({ cho: u.cho, jung: u.jung, jong: u.jong, en: u.lang === 'en' }));
   applyPhonology(pron);
+  // 활음이 붙은 영어 음절 표시: 로+우 → 로우, 소+울 → 소울
+  const show = (cho, jung, jong, tail) => (tail ? compose(cho, jung, '') + compose('ㅇ', 'ㅜ', jong) : compose(cho, jung, jong));
   word.syl = units.map((u, k) => {
     const p = pron[k];
+    const dj = p.disp ? decompose(p.disp).jung : p.jung;
     return {
-      ch: compose(p.cho, p.jung, p.jong) + (u.tail || ''),
-      orth: compose(u.cho, u.jung, u.jong) + (u.tail || ''),
+      ch: show(p.cho, dj, p.jong, u.tail),
+      orth: show(u.cho, u.jung, u.jong, u.tail),
       cho: p.cho, jung: p.jung, jong: p.jong,
       ep: !!u.ep, lang: u.lang, src: u.src,
     };
@@ -792,8 +797,9 @@ function parseOrth(orth, start, end, srcText, lang, isEnglish) {
     if (!d) continue;
     // 영어: '오' 뒤 '우' 활음은 한 음절로 합친다 (flow → 플로우 = 2음절)
     const prev = items[items.length - 1];
-    if (isEnglish && prev && !prev.ep && prev.jung === 'ㅗ' && !prev.jong && !prev.tail && d.cho === 'ㅇ' && d.jung === 'ㅜ' && !d.jong && orth[k + 1] !== "'") {
-      prev.tail = '우';
+    if (isEnglish && prev && !prev.ep && prev.jung === 'ㅗ' && !prev.jong && !prev.tail && d.cho === 'ㅇ' && d.jung === 'ㅜ' && orth[k + 1] !== "'") {
+      prev.tail = '우';      // flow=플로우, soul=소울(받침 ㄹ), known=노운
+      prev.jong = d.jong;
       continue;
     }
     items.push({ ...d, ep: false, tail: '', lang });
