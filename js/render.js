@@ -30,7 +30,8 @@ export function renderHighlight(el, st) {
   const sc = rhyme.scores;
   let h = `<div class="hl-summary">라임 그룹 <b>${groups.length}</b>개 · 라임 밀도 <b>${pct(sc.density)}</b> · 점수 <b>${sc.total}</b>/100. 색깔 칩이나 가사를 누르면 해당 라임만 강조하고 발음을 보여줍니다.</div>`;
   h += legendHtml(st);
-  h += `<div class="hl-tools"><label class="switch small"><input type="checkbox" id="hl-pron"${st.showPron ? ' checked' : ''}><span class="track"></span><span>발음 표기 보기</span></label><span class="muted">밑줄 두께 = 라임 길이 · 빗금 = 같은 말 반복</span></div>`;
+  h += `<div class="hl-tools"><label class="switch small"><input type="checkbox" id="hl-pron"${st.showPron ? ' checked' : ''}><span class="track"></span><span>발음 표기 보기</span></label><span class="muted">밑줄 두께 = 라임 길이 · 빗금 = 같은 말 반복 · <b>줄 번호를 누르면 그 줄을 바로 고칩니다</b></span></div>`;
+  if (rhyme.excludedKeys && rhyme.excludedKeys.length) h += `<div class="undo-row">‘라임 아님’으로 뺀 구간 ${rhyme.excludedKeys.length}개 · <button type="button" class="link" id="excl-undo">모두 되돌리기</button></div>`;
   h += `<div class="lyrics${st.focus >= 0 ? ' focusing' : ''}" id="lyrics-view">`;
   const schemeByLine = new Map(rhyme.scheme.lines.map(l => [l.line, l]));
   for (const line of pron.lines) {
@@ -43,7 +44,7 @@ export function renderHighlight(el, st) {
       const on = sch.letter !== 'X' && sch.group >= 0;
       schHtml = `<span class="sch${on ? ' on' : ''}" style="${on ? styleAttr(sch.group, theme) : ''}" title="끝라임 ${sch.letter}">${sch.letter === 'X' ? '·' : sch.letter}</span>`;
     }
-    h += `<div class="lyr-line" data-line="${line.idx}"><span class="ln">${line.n + 1}</span><span class="tx">${lineHtml(line, st, showNums)}${st.showPron ? pronHtml(line, st) : ''}</span>${schHtml}</div>`;
+    h += `<div class="lyr-line" data-line="${line.idx}"><button type="button" class="ln" data-edit="${line.idx}" aria-label="${line.n + 1}줄 고치기">${line.n + 1}</button><span class="tx">${lineHtml(line, st, showNums)}${st.showPron ? pronHtml(line, st) : ''}</span>${schHtml}</div>`;
   }
   h += '</div>';
   el.innerHTML = h;
@@ -123,8 +124,10 @@ export function syllableSheet(st, sylIdx) {
   const s = pron.syllables[sylIdx];
   const w = pron.words[s.word];
   const g = rhyme.sylColor[sylIdx];
-  let h = wordInfoHtml(st, w);
-  if (g >= 0) h += groupInfoHtml(st, g, rhyme.sylMember[sylIdx]);
+  let h = '';
+  if (g >= 0) h += groupInfoHtml(st, g, rhyme.sylMember[sylIdx]) + '<h3>이 단어</h3>';
+  h += wordInfoHtml(st, w);
+  h += `<div class="sheet-actions"><button class="ghost" type="button" data-editline="${s.line}">이 줄 바로 고치기</button><button class="ghost" type="button" data-recword="${esc(w.text)}">이 단어로 라임 찾기</button></div>`;
   return { title: g >= 0 ? `라임 그룹 #${g + 1} · ${rhyme.groups[g].pattern}` : `“${w.text}” 발음`, html: h };
 }
 
@@ -154,10 +157,11 @@ export function groupInfoHtml(st, gid, memberIdx = -1) {
   h += `<dl class="kv"><dt>모음 패턴</dt><dd><b>${esc(g.pattern)}</b></dd><dt>운(받침 포함)</dt><dd>${esc(g.rime)}</dd></dl>`;
   h += '<ul class="member-list">';
   g.members.forEach((m, mi) => {
-    h += `<li${mi === memberIdx ? ` style="background:${s.bg}"` : ''}><span class="mln">${m.ln + 1}줄</span><span><span class="swatch" style="--c:${s.c}"></span> ${esc(m.text)}${m.repeat ? ' <span class="tag">반복</span>' : ''}${m.lineEnd ? ' <span class="tag">줄 끝</span>' : ''}</span><span class="mp">[${esc(m.pron)}]</span></li>`;
+    h += `<li${mi === memberIdx ? ` style="background:${s.bg}"` : ''}><span class="mln">${m.ln + 1}줄</span><span><span class="swatch" style="--c:${s.c}"></span> ${esc(m.text)}${m.repeat ? ' <span class="tag">반복</span>' : ''}${m.lineEnd ? ' <span class="tag">줄 끝</span>' : ''}</span><span class="mp">[${esc(m.pron)}]</span><button type="button" class="mx" data-excl="${esc(m.key)}" aria-label="${esc(m.text)} 라임에서 빼기">빼기</button></li>`;
   });
   h += '</ul>';
-  h += `<button class="ghost" type="button" data-focus="${gid}">이 그룹만 강조</button>`;
+  h += `<div class="sheet-actions"><button class="ghost" type="button" data-focus="${gid}">이 그룹만 강조</button><button class="ghost danger-text" type="button" data-exclgroup="${gid}">라임 아님 (그룹 해제)</button></div>`;
+  h += '<p class="note">‘빼기’는 그 구간만 라임에서 제외하고 나머지로 다시 묶습니다. 점수·구조도·JSON에도 반영되고, 이 기기에 저장됩니다.</p>';
   return h;
 }
 

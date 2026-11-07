@@ -45,6 +45,12 @@
 
 <main id="main">
   <section class="card input-card" aria-label="가사 입력">
+    <div class="input-collapsed" id="input-collapsed" hidden>
+      <span id="collapsed-info" class="muted"></span>
+      <span class="spacer"></span>
+      <button class="ghost" type="button" id="btn-edit">가사 전체 수정</button>
+    </div>
+    <div id="input-full">
     <label for="lyrics" class="sr-only">가사</label>
     <textarea id="lyrics" rows="8" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"
       placeholder="랩 가사를 붙여 넣으세요 (한국어 + 영어)&#10;빈 줄은 벌스 구분, [Verse]·[Hook] 같은 머리말은 제외됩니다."></textarea>
@@ -75,6 +81,7 @@
       </div>
     </details>
     <button id="btn-analyze" class="primary big" type="button">분석하기</button>
+    </div>
   </section>
 
   <nav class="tabs" role="tablist" aria-label="결과">

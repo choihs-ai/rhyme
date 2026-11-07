@@ -4,7 +4,7 @@ import { analyzeRhymes, describeGroups, DEFAULT_OPTIONS } from './rhyme.js';
 import { renderHighlight, renderScore, renderStructure, renderRecommend, syllableSheet, groupInfoHtml, drawImage, buildTextSummary, buildExport, esc } from './render.js';
 import { setDictionaries, recommend, dictionaryCounts } from './recommend.js';
 
-export const VERSION = 'v1.0.0';
+export const VERSION = 'v1.1.0';
 
 const SAMPLE = `너의 money 내 머니 다 같은 소리
 밤새 달려 갈망한 날 봐 이제 팔자
@@ -25,6 +25,7 @@ const state = {
   showPron: LS.get('showPron', false),
   showNums: LS.get('showNums', 'auto'),
   debug: LS.get('debug', true),
+  exclude: new Set(LS.get('exclude', [])),
   pron: null, rhyme: null, focus: -1, tab: 'hl',
   rec: { lang: 'all', coda: false, last: null },
 };
@@ -66,7 +67,7 @@ async function loadDictionaries() {
 }
 
 // ───────────────────────── 분석 ─────────────────────────
-async function analyze({ quiet = false } = {}) {
+async function analyze({ quiet = false, edited = false } = {}) {
   const text = $('#lyrics').value;
   if (!text.trim()) { if (!quiet) toast('가사를 붙여 넣어 주세요'); return; }
   const btn = $('#btn-analyze');
@@ -78,7 +79,7 @@ async function analyze({ quiet = false } = {}) {
     if (state.debug) console.groupCollapsed(`[라임 스캐너] 발음 변환 단계별 출력 (${text.split('\n').length}줄)`);
     const pron = analyzePronunciation(text, { overrides: state.overrides, debug: state.debug });
     if (state.debug) console.groupEnd();
-    const rhyme = analyzeRhymes(pron, state.options);
+    const rhyme = analyzeRhymes(pron, { ...state.options, exclude: state.exclude });
     const ms = performance.now() - t0;
     if (state.debug) {
       console.groupCollapsed(`[라임 스캐너] ⑤ 라임 그룹 ${rhyme.groups.length}개 · 점수 ${rhyme.scores.total} · ${ms.toFixed(0)}ms`);
@@ -88,10 +89,12 @@ async function analyze({ quiet = false } = {}) {
       console.groupEnd();
       window.__rhyme = { pron, rhyme };
     }
-    state.pron = pron; state.rhyme = rhyme; state.focus = -1;
-    saveRecent(text);
+    const keepFocus = edited && state.focus >= 0 && state.focus < rhyme.groups.length;
+    state.pron = pron; state.rhyme = rhyme; if (!keepFocus) state.focus = -1;
+    saveRecent(text, edited);
     renderAll();
     $('#export-bar').hidden = false;
+    collapseInput(true);
     if (!quiet) {
       selectTab('hl');
       $('.tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -102,6 +105,61 @@ async function analyze({ quiet = false } = {}) {
   } finally {
     btn.disabled = false; btn.textContent = '분석하기';
   }
+}
+
+// 분석 후 입력칸을 접어 결과에 화면을 내준다
+function collapseInput(on) {
+  const card = $('.input-card');
+  $('#input-full').hidden = on;
+  $('#input-collapsed').hidden = !on;
+  card.classList.toggle('is-collapsed', on);
+  if (on && state.pron) {
+    const n = state.pron.lines.filter(l => !l.blank && !l.header && l.syl.length).length;
+    $('#collapsed-info').textContent = `가사 ${n}줄 분석됨 · 점수 ${state.rhyme.scores.total}`;
+  }
+}
+
+// 하이라이트 화면에서 한 줄을 바로 고친다
+function startLineEdit(lineIdx) {
+  selectTab('hl');
+  const row = document.querySelector(`.lyr-line[data-line="${lineIdx}"]`);
+  if (!row || row.querySelector('.line-edit')) return;
+  const lines = $('#lyrics').value.split('\n');
+  const tx = row.querySelector('.tx');
+  const inp = document.createElement('input');
+  inp.className = 'line-edit';
+  inp.value = lines[lineIdx] ?? '';
+  inp.setAttribute('aria-label', '줄 고치기 (Enter 저장, Esc 취소)');
+  inp.autocapitalize = 'off'; inp.spellcheck = false; inp.enterKeyHint = 'done';
+  tx.replaceWith(inp);
+  inp.focus();
+  inp.setSelectionRange(inp.value.length, inp.value.length);
+  let done = false;
+  const finish = save => {
+    if (done) return; done = true;
+    if (!save || inp.value === lines[lineIdx]) { renderHighlight($('#panel-hl'), state); return; }
+    lines[lineIdx] = inp.value.replace(/\n/g, ' ');
+    $('#lyrics').value = lines.join('\n');
+    updateCount();
+    LS.set('draft', $('#lyrics').value);
+    analyze({ quiet: true, edited: true }).then(() => {
+      const r = document.querySelector(`.lyr-line[data-line="${lineIdx}"]`);
+      if (r) { r.classList.remove('flash'); void r.offsetWidth; r.classList.add('flash'); }
+    });
+  };
+  inp.addEventListener('keydown', e => {
+    if (e.isComposing || e.keyCode === 229) return;
+    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+    if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+  });
+  inp.addEventListener('blur', () => finish(true));
+}
+
+function excludeKeys(keys, msg) {
+  keys.forEach(k => state.exclude.add(k));
+  LS.set('exclude', [...state.exclude].slice(-500));
+  closeSheet();
+  analyze({ quiet: true, edited: true }).then(() => toast(msg));
 }
 
 function renderAll() {
@@ -145,7 +203,21 @@ function bindEvents() {
   });
 
   // 하이라이트
+  $('#btn-edit').addEventListener('click', () => {
+    collapseInput(false);
+    $('.input-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    $('#lyrics').focus({ preventScroll: true });
+  });
   $('#panel-hl').addEventListener('click', e => {
+    const ed = e.target.closest('[data-edit]');
+    if (ed) { startLineEdit(+ed.dataset.edit); return; }
+    if (e.target.id === 'excl-undo') {
+      state.rhyme.excludedKeys.forEach(k => state.exclude.delete(k));
+      LS.set('exclude', [...state.exclude]);
+      analyze({ quiet: true, edited: true }).then(() => toast('뺀 라임을 되돌렸습니다'));
+      return;
+    }
+    if (e.target.closest('.line-edit')) return;
     const chip = e.target.closest('.chip[data-g]');
     if (chip) { setFocus(+chip.dataset.g === state.focus ? -1 : +chip.dataset.g); return; }
     const s = e.target.closest('[data-s]');
@@ -197,6 +269,14 @@ function bindEvents() {
     if (e.target.closest('[data-close]')) { closeSheet(); return; }
     const f = e.target.closest('[data-focus]');
     if (f) { closeSheet(); selectTab('hl'); setFocus(+f.dataset.focus); $('#lyrics-view')?.scrollIntoView({ behavior: 'smooth' }); return; }
+    const el = e.target.closest('[data-editline]');
+    if (el) { closeSheet(); setTimeout(() => startLineEdit(+el.dataset.editline), 50); return; }
+    const rw = e.target.closest('[data-recword]');
+    if (rw) { closeSheet(); selectTab('rec'); $('#rec-input').value = rw.dataset.recword; runRecommend(); return; }
+    const ex = e.target.closest('[data-excl]');
+    if (ex) { excludeKeys([ex.dataset.excl], '그 구간을 라임에서 뺐습니다 (하이라이트 위쪽에서 되돌리기)'); return; }
+    const eg = e.target.closest('[data-exclgroup]');
+    if (eg) { excludeKeys(state.rhyme.groups[+eg.dataset.exclgroup].members.map(m => m.key), '그룹을 해제했습니다 (하이라이트 위쪽에서 되돌리기)'); return; }
     if (e.target.id === 'ov-save') return saveOverride();
     if (e.target.id === 'ov-del') return deleteOverride($('#ov-input').dataset.word);
   });
@@ -285,8 +365,10 @@ async function runRecommend() {
 }
 
 // ───────────────────────── 최근 분석 ─────────────────────────
-function saveRecent(text) {
-  const list = LS.get('recent', []).filter(r => r.text !== text);
+function saveRecent(text, replaceLatest = false) {
+  let list = LS.get('recent', []);
+  if (replaceLatest && list.length) list.shift(); // 줄 고치기는 같은 가사의 새 버전으로 덮어쓴다
+  list = list.filter(r => r.text !== text);
   const first = text.split('\n').map(s => s.trim()).find(s => s && !/^[\[(]/.test(s)) || text.trim().slice(0, 30);
   list.unshift({ ts: Date.now(), title: first.slice(0, 40), lines: text.split('\n').filter(l => l.trim()).length, text, score: state.rhyme ? state.rhyme.scores.total : null });
   LS.set('recent', list.slice(0, 10));

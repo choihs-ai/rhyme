@@ -106,6 +106,11 @@ export function analyzeRhymes(pron, options = {}) {
     return { sim: (vs * W_VOWEL + cs * W_CODA) / L, v: vs / L, c: cs / L, o: os / L, minv };
   }
   const segKey = (a, L) => { let k = ''; for (let t = 0; t < L; t++) k += U[a + t].key + '|'; return k; };
+  // 사용자가 '라임 아님'으로 뺀 구간: 줄 내용 + 줄 안 글자 위치로 식별 (그 줄을 고치면 자동으로 풀림)
+  const EX = opt.exclude instanceof Set ? opt.exclude : new Set(opt.exclude || []);
+  const exHit = new Set();
+  const spanKey = (a, L) => { const ln = pron.lines[S[a].line]; return `${ln.text.trim()}|${S[a].src[0] - ln.start}|${S[a + L - 1].src[1] - ln.start}`; };
+  const excluded = (a, L) => { if (!EX.size) return false; const k = spanKey(a, L); if (EX.has(k)) { exHit.add(k); return true; } return false; };
 
   // ── 1) 후보 쌍 수집 ──
   const cands = [];
@@ -156,6 +161,7 @@ export function analyzeRhymes(pron, options = {}) {
             else if (isEnd) seed = true;
             else if (L === 2) seed = alignEnd && (d <= 1 || (d <= 2 && (U[a + 1].le || U[b + 1].le))) && m.sim >= 0.87;
             else seed = alignEnd && m.sim >= 0.85 && (U[a].ws || U[b].ws);
+            if (excluded(a, L) || excluded(b, L)) continue;
             cands.push({ a, b, L, d, sim: m.sim, score, repeat, isEnd, alignEnd, alignStart, seed });
           }
         }
@@ -311,6 +317,7 @@ export function analyzeRhymes(pron, options = {}) {
     return {
       id: gi, len: g.L, vowels, pattern: vowels.join('-'), rime: rime.join(''), tags,
       members: ms.map(m => ({
+        key: spanKey(m.a, m.L),
         start: m.a, len: m.L, units: Array.from({ length: m.L }, (_, t) => m.a + t), repeat: m.repeat, line: S[m.a].line, ln: S[m.a].ln,
         text: pron.text.slice(S[m.a].src[0], S[m.a + m.L - 1].src[1]),
         pron: Array.from({ length: m.L }, (_, t) => S[m.a + t].ch).join(''),
@@ -336,7 +343,8 @@ export function analyzeRhymes(pron, options = {}) {
     m.pron = S.slice(a, b + 1).map(x => x.ch).join('');
   }));
 
-  const result = { options: opt, groups: outGroups, sylGroup, sylMember, sylRepeat, sylColor, sylExt, content };
+  const { exclude: _ex, ...plainOpt } = opt;
+  const result = { options: plainOpt, excludedKeys: [...exHit], groups: outGroups, sylGroup, sylMember, sylRepeat, sylColor, sylExt, content };
   result.scheme = computeScheme(pron, result);
   result.scores = computeScores(pron, result);
   return result;
