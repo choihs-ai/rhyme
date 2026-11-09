@@ -1,15 +1,27 @@
 // 라임 스캐너 — 앱 전체 연결
 import { analyzePronunciation, loadEnglishData } from './pronounce.js';
 import { analyzeRhymes, describeGroups, DEFAULT_OPTIONS } from './rhyme.js';
-import { renderHighlight, renderScore, renderStructure, renderRecommend, syllableSheet, groupInfoHtml, drawImage, buildTextSummary, buildExport, esc } from './render.js';
+import { renderHighlight, renderScore, renderStructure, renderRecommend, syllableSheet, groupInfoHtml, drawImage, drawScoreCard, buildTextSummary, buildExport, esc } from './render.js';
+import { encodeShare, decodeShare, shareCodeFromHash, appBaseUrl } from './share.js';
 import { setDictionaries, recommend, dictionaryCounts } from './recommend.js';
 
-export const VERSION = 'v1.2.1';
+export const VERSION = 'v1.3.0';
 
 const SAMPLE = `너의 money 내 머니 다 같은 소리
 밤새 달려 갈망한 날 봐 이제 팔자
 flow 위로 올라 so 높이 날아
 문제없어 끝없어 계속 걸어`;
+
+// 처음 방문했을 때 보여 주는 예시 (직접 쓴 가사)
+const DEMO = `[Verse 1]
+새벽 세 시 반 불 꺼진 내 방
+펜을 쥔 채 써 내려가 내 사상
+남들은 말해 꿈은 그냥 환상
+But I don't care 난 끝까지 가 전장
+가진 건 없어도 쌓아 올린 내 가치
+money talks 근데 난 말로 증명해 같이
+어제의 나와 오늘의 나 사이
+그 차이를 만든 건 쉼 없는 grind 매일`;
 
 const $ = s => document.querySelector(s);
 const LS = {
@@ -28,6 +40,7 @@ const state = {
   exclude: new Set(LS.get('exclude', [])),
   pron: null, rhyme: null, focus: -1, tab: 'hl',
   rec: { lang: 'all', coda: false, last: null },
+  demo: false, sharedText: null, lastText: '',
 };
 
 let dictReady = null;
@@ -45,7 +58,58 @@ function init() {
   const lastVer = LS.get('lastVersion', null);
   if (lastVer && lastVer !== VERSION) setTimeout(() => toast(`${VERSION}(으)로 업데이트되었습니다`), 600);
   LS.set('lastVersion', VERSION);
-  if (ta.value.trim()) dictReady.then(() => analyze({ quiet: true }));
+  const code = shareCodeFromHash();
+  if (code) loadShared(code);
+  else if (ta.value.trim()) dictReady.then(() => analyze({ quiet: true }));
+  else showDemo();
+}
+
+// ───────────────────────── 예시 · 공유 링크 ─────────────────────────
+function showNotice(html) { const n = $('#notice'); n.innerHTML = html; n.hidden = false; }
+function hideNotice() { const n = $('#notice'); n.hidden = true; n.innerHTML = ''; }
+
+function showDemo() {
+  $('#lyrics').value = DEMO;
+  updateCount();
+  state.demo = true;
+  dictReady.then(() => analyze({ quiet: true, demo: true }));
+}
+
+async function loadShared(code) {
+  try {
+    const { text, options } = await decodeShare(code);
+    if (options) Object.assign(state.options, options);
+    applyOptionsToUi();
+    $('#lyrics').value = text;
+    updateCount();
+    state.sharedText = text;
+    state.demo = false;
+    await dictReady;
+    await analyze({ quiet: true });
+  } catch (e) {
+    console.error(e);
+    toast('공유 링크를 열지 못했습니다');
+    clearShared();
+    if (!$('#lyrics').value.trim()) showDemo();
+  }
+}
+
+function clearShared() {
+  state.sharedText = null;
+  if (shareCodeFromHash()) history.replaceState(null, '', location.pathname + location.search);
+}
+
+// 예시·공유 가사를 비우고 내 가사를 넣을 준비
+function startMine() {
+  const ta = $('#lyrics');
+  ta.value = '';
+  updateCount();
+  state.demo = false;
+  clearShared();
+  hideNotice();
+  collapseInput(false);
+  $('.input-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  ta.focus({ preventScroll: true });
 }
 
 async function loadDictionaries() {
@@ -67,9 +131,12 @@ async function loadDictionaries() {
 }
 
 // ───────────────────────── 분석 ─────────────────────────
-async function analyze({ quiet = false, edited = false } = {}) {
+async function analyze({ quiet = false, edited = false, demo = false } = {}) {
   const text = $('#lyrics').value;
   if (!text.trim()) { if (!quiet) toast('가사를 붙여 넣어 주세요'); return; }
+  // 예시·공유 가사가 아닌 새 가사를 분석하면 안내를 내린다
+  if (!demo) state.demo = false;
+  if (state.sharedText !== null && text !== state.sharedText) clearShared();
   const btn = $('#btn-analyze');
   btn.disabled = true; btn.textContent = '분석 중…';
   await dictReady;
@@ -91,9 +158,14 @@ async function analyze({ quiet = false, edited = false } = {}) {
     }
     const keepFocus = edited && state.focus >= 0 && state.focus < rhyme.groups.length;
     state.pron = pron; state.rhyme = rhyme; if (!keepFocus) state.focus = -1;
-    saveRecent(text, edited);
+    state.lastText = text;
+    const isShared = state.sharedText !== null && text === state.sharedText;
+    if (!demo && !isShared) saveRecent(text, edited);
     renderAll();
     $('#export-bar').hidden = false;
+    if (demo) showNotice(`<span>아래는 <b>예시 가사</b> 분석이에요.</span><button type="button" data-mine>내 가사 넣기</button>`);
+    else if (isShared) showNotice(`<span><b>공유받은 가사</b>의 분석 결과예요.</span><button type="button" data-mine>내 가사 분석하기</button>`);
+    else hideNotice();
     collapseInput(true);
     if (!quiet) {
       selectTab('hl');
@@ -178,6 +250,10 @@ function bindEvents() {
   ta.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') analyze(); });
   $('#btn-sample').addEventListener('click', () => { ta.value = SAMPLE; updateCount(); LS.set('draft', SAMPLE); analyze(); });
   $('#btn-clear').addEventListener('click', () => { ta.value = ''; updateCount(); LS.set('draft', ''); ta.focus(); });
+  // 예시 가사가 들어 있을 때 입력칸을 누르면 비워서 바로 붙여 넣을 수 있게
+  ta.addEventListener('focus', () => { if (state.demo && ta.value === DEMO) { ta.value = ''; updateCount(); } });
+  $('#notice').addEventListener('click', e => { if (e.target.closest('[data-mine]')) startMine(); });
+  window.addEventListener('hashchange', () => { const c = shareCodeFromHash(); if (c) loadShared(c); });
 
   // 옵션
   $('#opt-vowel').addEventListener('change', e => setOption('vowelOnly', e.target.checked));
@@ -254,6 +330,8 @@ function bindEvents() {
   });
 
   // 내보내기
+  $('#btn-share').addEventListener('click', shareLink);
+  $('#btn-card').addEventListener('click', exportCard);
   $('#btn-image').addEventListener('click', exportImage);
   $('#btn-copy').addEventListener('click', async () => {
     if (!state.rhyme) return;
@@ -510,6 +588,33 @@ async function exportImage() {
   if (!blob) { toast('이미지를 만들지 못했습니다'); return; }
   const r = await shareOrDownload(blob, `rhyme-${stamp()}.png`, '라임 스캐너 분석');
   if (r === 'downloaded') toast('이미지를 저장했습니다');
+}
+async function shareLink() {
+  if (!state.rhyme) return;
+  const btn = $('#btn-share');
+  btn.disabled = true;
+  try {
+    const code = await encodeShare({ text: state.lastText, options: state.options });
+    const url = `${appBaseUrl()}#s=${code}`;
+    const sc = state.rhyme.scores;
+    if (navigator.share) {
+      try { await navigator.share({ title: '라임 스캐너', text: `내 가사 라임 점수 ${sc.total}점 (${sc.grade})`, url }); return; }
+      catch (e) { if (e.name === 'AbortError') return; }
+    }
+    const ok = await copyText(url);
+    toast(ok ? '결과 링크를 복사했습니다. 받은 사람도 같은 결과를 볼 수 있어요' : '링크를 복사하지 못했습니다');
+  } catch (e) {
+    console.error(e);
+    toast('링크를 만들지 못했습니다');
+  } finally { btn.disabled = false; }
+}
+async function exportCard() {
+  if (!state.rhyme) return;
+  const canvas = drawScoreCard(state);
+  const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+  if (!blob) { toast('카드를 만들지 못했습니다'); return; }
+  const r = await shareOrDownload(blob, `rhyme-score-${stamp()}.png`, '라임 스캐너 점수');
+  if (r === 'downloaded') toast('점수 카드를 저장했습니다');
 }
 async function exportJson() {
   if (!state.rhyme) return;

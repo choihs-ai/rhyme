@@ -453,6 +453,86 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
 }
 
+// ───────────────────────── 점수 카드 (인스타 스토리 1080×1920) ─────────────────────────
+export function drawScoreCard(st) {
+  const { rhyme, theme } = st;
+  const light = theme === 'light';
+  const C = light
+    ? { bg1: '#fcfcfb', bg2: '#ecebe5', ink: '#0b0b0b', sub: '#52514e', muted: '#77766f', track: '#dddcd5', card: 'rgba(0,0,0,0.04)' }
+    : { bg1: '#1d1d1b', bg2: '#0b0b0a', ink: '#f0efec', sub: '#c3c2b7', muted: '#8d8c84', track: '#2f2f2c', card: 'rgba(255,255,255,0.04)' };
+  const W = 1080, H = 1920, P = 96;
+  const sc = rhyme.scores;
+  const accent = groupStyle(0, theme).c;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, C.bg1); g.addColorStop(1, C.bg2);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.textBaseline = 'alphabetic';
+  const fit = (text, max, font) => { ctx.font = font; let t = text; while (ctx.measureText(t).width > max && t.length > 2) t = t.slice(0, -2); return t === text ? t : t + '…'; };
+
+  // 머리
+  ctx.fillStyle = C.sub; ctx.font = `700 40px ${FONT}`;
+  ctx.fillText('라임 스캐너', P, 200);
+  ctx.fillStyle = C.muted; ctx.font = `500 34px ${FONT}`;
+  ctx.fillText('내 가사 라임 점수', P, 256);
+
+  // 큰 점수
+  ctx.fillStyle = C.ink; ctx.font = `800 340px ${FONT}`;
+  const numW = ctx.measureText(String(sc.total)).width;
+  ctx.fillText(String(sc.total), P - 12, 600);
+  ctx.fillStyle = C.muted; ctx.font = `600 64px ${FONT}`;
+  ctx.fillText('/ 100', P + numW + 10, 600);
+  // 등급 배지
+  const bx = W - P - 170, by = 380;
+  ctx.fillStyle = accent; roundRect(ctx, bx, by, 170, 170, 40); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.font = `800 120px ${FONT}`; ctx.textAlign = 'center';
+  ctx.fillText(sc.grade, bx + 85, by + 128); ctx.textAlign = 'left';
+
+  ctx.fillStyle = C.sub; ctx.font = `500 38px ${FONT}`;
+  ctx.fillText(`라임 밀도 ${pct(sc.density)} · 다음절 라임 ${sc.multiCount}개 · ${rhyme.content.length}줄`, P, 690);
+
+  // 항목 막대
+  let y = 800;
+  for (const p of sc.parts) {
+    ctx.fillStyle = C.sub; ctx.font = `600 36px ${FONT}`;
+    ctx.fillText(p.label, P, y);
+    ctx.fillStyle = C.muted; ctx.textAlign = 'right'; ctx.font = `500 34px ${FONT}`;
+    ctx.fillText(`${Math.round(p.value)} / ${p.max}`, W - P, y); ctx.textAlign = 'left';
+    ctx.fillStyle = C.track; roundRect(ctx, P, y + 22, W - P * 2, 18, 9); ctx.fill();
+    const w = Math.max(18, (W - P * 2) * Math.min(1, p.value / p.max));
+    ctx.fillStyle = accent; roundRect(ctx, P, y + 22, w, 18, 9); ctx.fill();
+    y += 108;
+  }
+
+  // 가장 긴 라임
+  y += 40;
+  ctx.fillStyle = C.ink; ctx.font = `800 44px ${FONT}`;
+  ctx.fillText('가장 긴 라임', P, y);
+  y += 30;
+  const top = sc.top5.slice(0, 3);
+  if (!top.length) { ctx.fillStyle = C.muted; ctx.font = `500 36px ${FONT}`; ctx.fillText('찾은 라임이 없습니다', P, y + 60); }
+  for (const t of top) {
+    const s = groupStyle(t.id, theme);
+    ctx.fillStyle = C.card; roundRect(ctx, P, y, W - P * 2, 116, 24); ctx.fill();
+    ctx.fillStyle = s.c; roundRect(ctx, P + 28, y + 34, 48, 48, 12); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = `800 28px ${FONT}`; ctx.textAlign = 'center';
+    ctx.fillText(String(t.len), P + 52, y + 68); ctx.textAlign = 'left';
+    ctx.fillStyle = C.ink;
+    ctx.fillText(fit(t.texts.join(' / '), W - P * 2 - 140, `600 38px ${FONT}`), P + 100, y + 72);
+    y += 136;
+  }
+
+  // 꼬리
+  ctx.fillStyle = C.sub; ctx.font = `600 38px ${FONT}`; ctx.textAlign = 'center';
+  ctx.fillText('내 가사도 분석해 보기', W / 2, H - 170);
+  ctx.fillStyle = accent; ctx.font = `700 42px ${FONT}`;
+  ctx.fillText('choihs-ai.github.io/rhyme', W / 2, H - 110);
+  ctx.textAlign = 'left';
+  return canvas;
+}
+
 // ───────────────────────── 텍스트 / JSON 내보내기 ─────────────────────────
 export function buildTextSummary(st, version) {
   const { pron, rhyme } = st;

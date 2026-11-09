@@ -32,6 +32,8 @@
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
   <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 7-5 5 5 5M16 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 15h6M9 18h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="9" r="2.5" fill="currentColor"/></symbol>
 </svg>
 
 <header class="top">
@@ -46,6 +48,7 @@
 </header>
 
 <main id="main">
+  <p class="intro" id="intro">한국어·영어가 섞인 랩 가사를 붙여 넣으면 라임을 실제 발음 기준으로 찾아 색으로 보여 줍니다. 가입 없이 무료이고, 가사는 이 기기 밖으로 나가지 않아요.</p>
   <section class="card input-card" aria-label="가사 입력">
     <div class="input-collapsed" id="input-collapsed" hidden>
       <span id="collapsed-info" class="muted"></span>
@@ -86,6 +89,8 @@
     </div>
   </section>
 
+  <div class="notice" id="notice" hidden></div>
+
   <nav class="tabs" role="tablist" aria-label="결과">
     <button role="tab" type="button" id="tab-hl" aria-controls="panel-hl" aria-selected="true">하이라이트</button>
     <button role="tab" type="button" id="tab-score" aria-controls="panel-score" aria-selected="false" tabindex="-1">점수</button>
@@ -120,6 +125,8 @@
   </section>
 
   <div class="export-bar" id="export-bar" hidden>
+    <button type="button" id="btn-share" class="wide accent"><svg><use href="#i-link"/></svg>결과 링크 공유</button>
+    <button type="button" id="btn-card"><svg><use href="#i-card"/></svg>점수 카드</button>
     <button type="button" id="btn-image"><svg><use href="#i-image"/></svg>이미지 저장</button>
     <button type="button" id="btn-copy"><svg><use href="#i-copy"/></svg>텍스트 복사</button>
     <button type="button" id="btn-json"><svg><use href="#i-code"/></svg>JSON</button>

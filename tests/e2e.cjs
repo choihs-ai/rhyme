@@ -15,7 +15,10 @@ const BASE = process.env.BASE || 'http://localhost:8765/rhyme/';
   await page.goto(BASE, { waitUntil: 'networkidle' });
   await page.waitForFunction(() => /사전 한국어/.test(document.querySelector('#dict-status').textContent), null, { timeout: 15000 });
   console.log('dict:', await page.textContent('#dict-status'), '| ver:', await page.textContent('#ver'));
+  // 첫 방문은 예시 가사 분석이 바로 보인다 → '내 가사 넣기'로 입력칸을 연다
+  await page.waitForSelector('#notice:not([hidden])', { timeout: 15000 });
   await page.screenshot({ path: SP + '/shots/01-home.png' });
+  await page.click('#notice [data-mine]');
   await page.click('#btn-sample');
   await page.waitForSelector('#lyrics-view .m');
   await page.waitForTimeout(600);
