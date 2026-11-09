@@ -304,6 +304,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 .export-bar svg { width: 18px; height: 18px; color: var(--text-secondary); }
 .foot { max-width: 760px; margin: 0 auto; padding: 8px 16px 20px; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--text-muted); }
 .foot #ver { color: var(--text-secondary); font-weight: 700; font-variant-numeric: tabular-nums; }
+.foot-links { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 6px; }
+.foot-links a { color: var(--text-muted); }
 .toast {
   position: fixed; left: 50%; bottom: calc(var(--safe-bottom) + 24px); transform: translateX(-50%) translateY(20px);
   background: var(--text-primary); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-size: 14px;
