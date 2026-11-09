@@ -1,11 +1,11 @@
 // 라임 스캐너 — 앱 전체 연결
 import { analyzePronunciation, loadEnglishData } from './pronounce.js';
-import { analyzeRhymes, describeGroups, DEFAULT_OPTIONS } from './rhyme.js';
+import { analyzeRhymes, describeGroups, DEFAULT_OPTIONS, setLexicon, lexiconFromKo } from './rhyme.js';
 import { renderHighlight, renderScore, renderStructure, renderRecommend, syllableSheet, groupInfoHtml, drawImage, drawScoreCard, buildTextSummary, buildExport, esc } from './render.js';
 import { encodeShare, decodeShare, shareCodeFromHash, appBaseUrl } from './share.js';
 import { setDictionaries, recommend, dictionaryCounts } from './recommend.js';
 
-export const VERSION = 'v1.3.0';
+export const VERSION = 'v1.3.1';
 
 const SAMPLE = `너의 money 내 머니 다 같은 소리
 밤새 달려 갈망한 날 봐 이제 팔자
@@ -121,6 +121,7 @@ async function loadDictionaries() {
     ]);
     loadEnglishData(en);
     setDictionaries(ko, en);
+    setLexicon(lexiconFromKo(ko));
     const c = dictionaryCounts();
     status.textContent = `사전 한국어 ${ko.count.toLocaleString()} · 영어 ${en.count.toLocaleString()}(랩 ${en.rapCount.toLocaleString()})`;
     if (state.debug) console.info(`[라임 스캐너 ${VERSION}] 사전 로드: 한국어 ${ko.count}, 영어 발음 ${en.count}, 추천 색인 ${c.ko}+${c.en}`);

@@ -36,6 +36,15 @@ const canon = v => CANON[v] || v;
 const W_VOWEL = 0.75, W_CODA = 0.25;
 // 조사·어미로 자주 쓰이는 음절 — 양쪽 끝이 모두 이것이면 문법적 우연일 가능성이 커서 약하게 본다.
 // ('어/아/해' 계열 어미는 한국어 랩 라임의 핵심이라 제외: 없어/걸어)
+// 한국어 기본어 사전 (앱이 사전을 불러오면 setLexicon 으로 채운다)
+let LEXICON = new Set();
+export function setLexicon(words) { LEXICON = words instanceof Set ? words : new Set(words); }
+// data/ko-words.json 의 기본어(| 앞)만 모은다 — 활용형(가는, 좋니)은 넣지 않는다
+export function lexiconFromKo(ko) {
+  const set = new Set();
+  for (const v of Object.values(ko.idx || {})) for (const w of v.split('|')[0].split(' ')) if (w) set.add(w);
+  return set;
+}
 const GRAMMAR = new Set('은 는 을 를 이 가 에 의 도 만 와 과 로 고 서 면 다 요 지 게 며 니 까 께 랑 든 던 죠 네 데 음 기 여 다가 한 할 된 될 는데'.split(' '));
 const GRAMMAR_W = 0.35;
 
@@ -75,7 +84,7 @@ export function analyzeRhymes(pron, options = {}) {
       i, v: VIDX[s.jung], vj: s.jung, c: s.jong, o: s.cho, ep: s.ep, n: s.ln, verse: s.verse, line: s.line,
       ws: leadEp(i, la, k => S[k].word === s.word), we: trailEp(i, lb, k => S[k].word === s.word),
       le: trailEp(i, lb, () => true), ls: i === la,
-      gram: s.lang === 'ko' && s.wi === s.wn - 1 && s.wn > 1 && GRAMMAR.has(s.orth),
+      gram: s.lang === 'ko' && s.wi === s.wn - 1 && s.wn > 1 && GRAMMAR.has(s.orth) && !LEXICON.has(w.text),
       key: s.lang === 'ko' ? s.orth : `${w.text.toLowerCase()}#${s.wi}`, wkey: `${w.text.toLowerCase()}#${s.wi}`, lang: s.lang, word: s.word,
     };
   });
@@ -106,6 +115,8 @@ export function analyzeRhymes(pron, options = {}) {
     return { sim: (vs * W_VOWEL + cs * W_CODA) / L, v: vs / L, c: cs / L, o: os / L, minv };
   }
   const segKey = (a, L) => { let k = ''; for (let t = 0; t < L; t++) k += U[a + t].key + '|'; return k; };
+  // 같은 글자 비율: 2음절 이상에서 60%를 넘으면 라임이 아니라 같은 말의 반복으로 본다
+  const nearSame = (a, b, L) => { if (L < 2) return false; let same = 0; for (let t = 0; t < L; t++) if (U[a + t].key === U[b + t].key) same++; return same === L || same / L > 0.6; };
   // 사용자가 '라임 아님'으로 뺀 구간: 줄 내용 + 줄 안 글자 위치로 식별 (그 줄을 고치면 자동으로 풀림)
   const EX = opt.exclude instanceof Set ? opt.exclude : new Set(opt.exclude || []);
   const exHit = new Set();
@@ -142,7 +153,7 @@ export function analyzeRhymes(pron, options = {}) {
             const alignStart = U[a].ws && U[b].ws;
             const fullA = U[a].ws && U[a + L - 1].we, fullB = U[b].ws && U[b + L - 1].we;
             // 반복: 2음절 이상은 같은 글자열, 1음절은 같은 단어일 때
-            const repeat = L === 1 ? U[a].wkey === U[b].wkey && pron.words[U[a].word].text === pron.words[U[b].word].text : segKey(a, L) === segKey(b, L);
+            const repeat = L === 1 ? U[a].wkey === U[b].wkey && pron.words[U[a].word].text === pron.words[U[b].word].text : nearSame(a, b, L);
             if (L === 1) {
               if (U[a].ep || U[b].ep) continue;
               if (U[a].gram && U[b].gram) continue;   // 했다/먹었다의 '다' 같은 어미끼리는 1음절 라임으로 보지 않음
@@ -192,7 +203,11 @@ export function analyzeRhymes(pron, options = {}) {
     const rep = members[g.members[0]];
     if (rep.L !== L) return false;
     // 단어 끝에서 끝나지 않는 멤버(갈망|한)는 끝라임 그룹에만 합류
-    if (L > 1 && !U[a + L - 1].we && !U[a + L - 1].le && g.members.filter(mid => U[members[mid].a + L - 1].le).length < 2) return false;
+    // 단, 단어 첫머리에서 시작하는 멤버(조이|보이가)는 단어 끝이 맞는 멤버가 2개 이상인 그룹에 붙을 수 있다
+    if (L > 1 && !U[a + L - 1].we && !U[a + L - 1].le) {
+      const endAligned = g.members.filter(mid => U[members[mid].a + L - 1].we).length;
+      if (!(U[a].ws && U[a].word === U[a + L - 1].word && endAligned >= 2) && g.members.filter(mid => U[members[mid].a + L - 1].le).length < 2) return false;
+    }
     if (L === 1) return !!compare(rep.a, a, 1, true);
     const m = compare(rep.a, a, L, false);
     return !!m && m.sim >= P.T - 0.05;
@@ -279,10 +294,17 @@ export function analyzeRhymes(pron, options = {}) {
     if (!g.alive) continue;
     g.members.sort((x, y) => members[x].a - members[y].a);
     const seen = new Set();
+    const firsts = [];
     for (const mid of g.members) {
-      const k = segText(members[mid]);
-      if (seen.has(k)) members[mid].repeat = true;
+      const m = members[mid];
+      const k = segText(m);
+      if (seen.has(k) || (m.L > 1 && firsts.some(f => nearSame(f.a, m.a, m.L)))) m.repeat = true;
+      else firsts.push(m);
       seen.add(k);
+    }
+    // 1음절 그룹이 전부 같은 글자(원투훅 / 이건훅 / 너는훅)면 라임이 아니라 같은 말 반복
+    if (g.L === 1 && g.members.length && g.members.every(mid => S[members[mid].a].orth === S[members[g.members[0]].a].orth)) {
+      g.members.forEach((mid, k) => { if (k) members[mid].repeat = true; });
     }
     const kept = validate(g);
     if (!kept) {

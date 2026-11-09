@@ -616,7 +616,12 @@ function joinSuffix(base, suf) {
 const RE_HANGUL = /[가-힣]/;
 const RE_LATIN = /[A-Za-z]/;
 const RE_DIGIT = /[0-9]/;
-const HEADER_RE = /^\s*[\[(（【]?\s*(verse|chorus|hook|bridge|intro|outro|pre-?chorus|pre-?hook|refrain|interlude|훅|벌스|코러스|후렴|인트로|아웃트로|브릿지|브리지|간주)[^\])）】]*[\])）】]?\s*:?\s*$/i;
+// 머리말 줄: [Verse 1: 이름] 처럼 대괄호 안이면 뒤에 무엇이 와도 되고,
+// 괄호·맨 글자는 "(Hook)", "훅 2", "Verse:" 처럼 이름과 번호만 있을 때만 (가사 "(훅 가버려)"는 가사로 본다)
+const HEADER_KW = '(?:verse|chorus|hook|bridge|intro|outro|pre-?chorus|pre-?hook|refrain|interlude|훅|벌스|코러스|후렴|인트로|아웃트로|브릿지|브리지|간주)';
+const HEADER_BRACKET = new RegExp(`^\\s*[\\[【]\\s*${HEADER_KW}[^\\]】]*[\\]】]\\s*:?\\s*$`, 'i');
+const HEADER_PLAIN = new RegExp(`^\\s*[(（]?\\s*${HEADER_KW}\\s*\\d*\\s*[)）]?\\s*:?\\s*$`, 'i');
+const HEADER_RE = { test: t => HEADER_BRACKET.test(t) || HEADER_PLAIN.test(t) };
 
 // 한 줄을 단어(소리 나는 조각이 이어진 덩어리)로 나눈다
 function splitWords(line, offset) {
