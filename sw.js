@@ -1,7 +1,7 @@
 // 라임 스캐너 — 서비스 워커 (홈 화면 앱 + 오프라인)
 // 배포할 때마다 VERSION 을 올리면(js/app.js 의 VERSION 과 같게) 새 캐시로 교체된다.
 // 사전 JSON 은 DATA_VERSION 이 바뀔 때만 다시 받는다.
-const VERSION = 'v1.2.0';
+const VERSION = 'v1.2.1';
 const DATA_VERSION = 'd1';
 const APP_CACHE = `rhyme-app-${VERSION}`;
 const DATA_CACHE = `rhyme-data-${DATA_VERSION}`;

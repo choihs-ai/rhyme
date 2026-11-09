@@ -58,6 +58,8 @@ def page(meta, body, depth):
 <link rel="apple-touch-icon" href="{up}icons/apple-touch-icon.png">
 <link rel="stylesheet" href="{up}css/guide.css">
 {THEME}
+<meta name="google-adsense-account" content="ca-pub-3140730302320188">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3140730302320188" crossorigin="anonymous"></script>
 {ld}</head>
 <body>
 <header class="top"><div class="wrap">
