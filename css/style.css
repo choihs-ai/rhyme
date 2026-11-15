@@ -341,3 +341,10 @@ button.ln:hover, button.ln:active { color: var(--accent); background: var(--acce
 .member-list .mx { margin-left: 8px; font-size: 13px; color: var(--danger); background: none; border: 0; padding: 4px 6px; white-space: nowrap; }
 .sheet-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .undo-row { font-size: 13px; color: var(--text-muted); margin: -4px 0 10px; }
+
+/* 검색엔진·처음 온 사람을 위한 소개 (정적 글) */
+.seo-about { margin-top: 28px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-1); color: var(--text-secondary); font-size: 14px; line-height: 1.7; }
+.seo-about h2 { font-size: 16px; margin: 0 0 6px; color: var(--text-primary); }
+.seo-about p { margin: 6px 0; }
+.seo-about ul { margin: 6px 0; padding-left: 18px; }
+.seo-about a { color: var(--accent); }

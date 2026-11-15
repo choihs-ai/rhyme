@@ -5,7 +5,7 @@ import { renderHighlight, renderScore, renderStructure, renderRecommend, syllabl
 import { encodeShare, decodeShare, shareCodeFromHash, appBaseUrl } from './share.js';
 import { setDictionaries, recommend, dictionaryCounts } from './recommend.js';
 
-export const VERSION = 'v1.3.1';
+export const VERSION = 'v1.3.2';
 
 const SAMPLE = `너의 money 내 머니 다 같은 소리
 밤새 달려 갈망한 날 봐 이제 팔자
