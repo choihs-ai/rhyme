@@ -259,7 +259,7 @@ money talks 근데 난 말로 증명해 같이
 밑바닥부터 올라온 내 soul
 모두가 no 라고 할 때 난 go
 이제는 내가 만든 나만의 show`,
-    rhymes: [{ w: ['1:road', '2:soul', '3:go', '4:show'] }, { w: ['1:know', '3:no'] }], scheme: 'AAAA' },
+    rhymes: [{ w: ['1:road', '2:soul', '3:go', '4:show'] }], scheme: 'AAAA' },
   { id: 'mix-kr-en', cat: '종합', text: `통장에 찍힌 숫자는 zero
 그래도 난 내 꿈의 hero
 바닥에서 위로

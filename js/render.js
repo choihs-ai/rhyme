@@ -97,7 +97,7 @@ function lineHtml(line, st, showNums) {
       const grp = rhyme.groups[g], mem = grp.members[mi];
       const sty = groupStyle(g, theme);
       const cls = 'm' + (sty.tier ? ` t${sty.tier}` : '') + (mem.repeat ? ' rep' : '') + (st.focus === g ? ' on' : '');
-      out += `<span class="${cls}" data-g="${g}" data-m="${mi}" style="${styleAttr(g, theme, grp.len)}">${sylRun(k, j)}${showNums ? `<sup class="gn">${g + 1}</sup>` : ''}</span>`;
+      out += `<span class="${cls}" data-g="${g}" data-m="${mi}" style="${styleAttr(g, theme, mem.len)}">${sylRun(k, j)}${showNums ? `<sup class="gn">${g + 1}</sup>` : ''}</span>`;
     } else out += sylRun(k, j);
     k = j;
   }
@@ -417,7 +417,7 @@ export function drawImage(st, version) {
         ctx.fillStyle = s.bg;
         roundRect(ctx, x - 2, base - FS * 0.98, w + 4, FS * 1.32, 8); ctx.fill();
         ctx.fillStyle = s.c;
-        const u = underline(grp.len) * 1.6;
+        const u = underline(mem.len) * 1.6;
         if (mem.repeat || s.tier === 2) { for (let dx = 0; dx < w; dx += 14) ctx.fillRect(x + dx, base + FS * 0.3, Math.min(8, w - dx), u); }
         else if (s.tier === 1) { ctx.fillRect(x, base + FS * 0.26, w, u * 0.6); ctx.fillRect(x, base + FS * 0.26 + u, w, u * 0.6); }
         else ctx.fillRect(x, base + FS * 0.3, w, u);
@@ -578,7 +578,7 @@ export function buildExport(st, version) {
     })),
     groups: rhyme.groups.map(g => ({
       id: g.id, length: g.len, pattern: g.pattern, vowels: g.vowels, rime: g.rime, tags: g.tags, color: groupStyle(g.id, theme).c,
-      members: g.members.map(m => ({ syllables: m.units, start: m.src[0], end: m.src[1], text: m.text, pron: m.pron, line: m.ln, lineEnd: m.lineEnd, repeat: m.repeat })),
+      members: g.members.map(m => ({ syllables: m.units, length: m.len, start: m.src[0], end: m.src[1], text: m.text, pron: m.pron, line: m.ln, lineEnd: m.lineEnd, repeat: m.repeat })),
     })),
     scheme: rhyme.scheme.verses.map(v => ({ verse: v.verse, pattern: v.pattern, blocks: v.blocks })),
     scores: {

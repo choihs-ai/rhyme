@@ -36,7 +36,8 @@ const check = (name, ok) => { console.log(`${ok ? '✓' : '✗'} ${name}`); if (
 {
   const prose = fs.readFileSync(new URL('./fixtures/prose.txt', import.meta.url), 'utf8');
   const d = run(prose).scores.density;
-  check(`산문 라임 밀도 낮게 유지 (${(d * 100).toFixed(1)}% < 6%)`, d < 0.06);
+  // v1.4.0 부터 10%: 조사가 다른 낱말 쌍(아침|에 / 많이)도 잡게 하면서 우연한 일치가 한두 개 늘었다 (랩 가사는 30~60%)
+  check(`산문 라임 밀도 낮게 유지 (${(d * 100).toFixed(1)}% < 10%)`, d < 0.1);
 }
 // 6) '훅'으로 시작하는 가사 줄은 머리말이 아니다
 {

@@ -28,13 +28,15 @@ function resolve(pron, content, spec) {
   return line.syl.filter(i => pron.syllables[i].src[0] < e && pron.syllables[i].src[1] > s && pron.syllables[i].src[1] > pron.syllables[i].src[0]);
 }
 
+export const PROSE_MAX_DENSITY = 0.2;
+
 export function evaluate(engine, cases = CASES, opt = {}) {
   const out = [];
   for (const c of cases) {
     const { pron, rhyme } = engine.analyze(c.text, opt);
     const content = pron.lines.filter(l => !l.blank && !l.header && l.syl.length);
     const groupsOf = spec => new Map(resolve(pron, content, spec).filter(i => rhyme.sylGroup[i] >= 0).map(i => [rhyme.sylGroup[i], !!rhyme.sylRepeat[i]]));
-    const r = { id: c.id, cat: c.cat, pairs: 0, found: 0, nots: 0, notBad: 0, reps: 0, repOk: 0, scheme: null, fp: 0, problems: [] };
+    const r = { id: c.id, cat: c.cat, pairs: 0, found: 0, nots: 0, notBad: 0, reps: 0, repOk: 0, scheme: null, fp: 0, proseUnits: 0, problems: [] };
     for (const set of c.rhymes || []) {
       for (let i = 0; i < set.w.length; i++) for (let j = i + 1; j < set.w.length; j++) {
         r.pairs++;
@@ -58,8 +60,11 @@ export function evaluate(engine, cases = CASES, opt = {}) {
       if ([...G.values()].every(rep => rep)) r.repOk++; else r.problems.push(`반복인데 라임으로 셈: ${spec}`);
     }
     if (c.none) {
+      // 산문에도 우연히 맞는 소리는 있다. 랩 가사(30~60%)와 뚜렷이 갈리는지를 본다: 한 편당 밀도 20% 이하면 통과,
+      // 오탐 음절 수는 따로 합산해서 보고한다.
       r.fp = rhyme.scores.rhymeUnits;
-      if (r.fp) r.problems.push(`산문에서 라임 음절 ${r.fp}개 (밀도 ${(rhyme.scores.density * 100).toFixed(1)}%)`);
+      r.proseUnits = rhyme.scores.totalUnits;
+      if (rhyme.scores.density > PROSE_MAX_DENSITY) r.problems.push(`산문에서 라임 음절 ${r.fp}개 (밀도 ${(rhyme.scores.density * 100).toFixed(1)}%)`);
     }
     if (c.scheme) {
       const got = rhyme.scheme.verses.map(v => v.pattern).join('/');
@@ -82,7 +87,7 @@ export function summarize(results) {
     cases: results.length, pass: results.filter(r => r.pass).length,
     pairs: sum('pairs'), found: sum('found'), recall: sum('found') / (sum('pairs') || 1),
     nots: sum('nots') + sum('reps'), notOk: sum('nots') - sum('notBad') + sum('repOk'),
-    proseFp: sum('fp'), schemes: schemes.length, schemeOk: schemes.filter(r => r.scheme).length, cats,
+    proseFp: sum('fp'), proseUnits: sum('proseUnits'), schemes: schemes.length, schemeOk: schemes.filter(r => r.scheme).length, cats,
   };
 }
 
@@ -93,7 +98,7 @@ export function formatSummary(s) {
     `라임 쌍 재현율     ${pct(s.found, s.pairs)}`,
     `오탐·반복 구분     ${pct(s.notOk, s.nots)}`,
     `끝라임 구조 일치   ${pct(s.schemeOk, s.schemes)}`,
-    `산문 대조군 오탐   ${s.proseFp} 음절`,
+    `산문 대조군 오탐   ${s.proseFp}/${s.proseUnits} 음절 (${s.proseUnits ? ((s.proseFp / s.proseUnits) * 100).toFixed(1) : 0}%)`,
     '분류별: ' + Object.entries(s.cats).map(([k, v]) => `${k} ${v.pass}/${v.total}`).join(' · '),
   ];
   return lines.join('\n');

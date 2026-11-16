@@ -38,6 +38,17 @@ function loadCmu(file) {
   return m;
 }
 
+// ARPAbet 음소열 → 운 꼬리. 마지막 1차 강세(없으면 2차 강세, 그것도 없으면 첫) 모음부터 끝까지, 강세 숫자는 뺀다.
+export function rhymeTail(phones) {
+  let at = -1;
+  for (const mark of ['1', '2']) {
+    for (let i = phones.length - 1; i >= 0 && at < 0; i--) if (phones[i].endsWith(mark)) at = i;
+  }
+  if (at < 0) at = phones.findIndex(p => /\d$/.test(p));
+  if (at < 0) return '';
+  return phones.slice(at).map(p => p.replace(/\d/, '')).join('.');
+}
+
 function buildEnglish() {
   const cmu = loadCmu(args.cmu);
   const dict = new Map();
@@ -87,15 +98,30 @@ function buildEnglish() {
     const k = rimeKey(syl);
     (idx[k] = idx[k] || []).push(w);
   }
+  // 4) 영어 운 꼬리(rhyme tail): 마지막 강세 모음부터 끝까지의 음소. 영어 단어끼리의 라임 판정에 쓴다.
+  //    한글 표기가 달라도(real=리얼, feel=필) 꼬리가 같으면(IY.L) 라임이고, 꼬리의 모음이 다르면 한글 표기가 닮아도 라임이 아니다.
+  const byTail = new Map();
+  for (const w of dict.keys()) {
+    const ph = cmu.get(w);
+    if (!ph) continue;
+    const t = rhymeTail(ph);
+    if (!t) continue;
+    if (!byTail.has(t)) byTail.set(t, []);
+    byTail.get(t).push(w);
+  }
+  const tails = {};
+  for (const [t, ws] of byTail) tails[t] = ws.join(' ');
+
   const out = {
-    v: 1,
-    note: 'en-words: 영어 발음 사전 + 랩 단어 추천 색인. dict = "단어\\t한글발음" 줄 목록(\' = 삽입모음). idx 키 = 발음 운(초성→ㅇ).',
+    v: 2,
+    note: 'en-words: 영어 발음 사전 + 랩 단어 추천 색인. dict = "단어\\t한글발음" 줄 목록(\' = 삽입모음). idx 키 = 발음 운(초성→ㅇ). tails = 영어 운 꼬리(음소) → 단어들.',
     sources: ['CMU Pronouncing Dictionary (BSD)', 'wordfreq English frequency list (CC-BY-SA 4.0)', 'tools/data-src/en-rap.txt (직접 작성)'],
     count: dict.size,
     rapCount: rap.length,
     dict: [...dict].map(([w, p]) => `${w}\t${p}`).join('\n'),
     rap: rap.join(' '),
     idx: Object.fromEntries(Object.entries(idx).map(([k, ws]) => [k, ws.join(' ')])),
+    tails,
   };
   fs.writeFileSync(path.join(ROOT, 'data/en-words.json'), JSON.stringify(out));
   console.log(`en-words.json: dict ${dict.size}, curated ${rap.length + norec.size} (rap ${rap.length}), rec pool ${pool.length}, keys ${Object.keys(idx).length}`);

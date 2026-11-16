@@ -511,6 +511,7 @@ export function englishG2P(word) {
 
 // ───────────────────────── 영어 사전 ─────────────────────────
 let EN_DICT = new Map();
+let EN_TAILS = new Map();
 export function setEnglishDictionary(obj) {
   EN_DICT = obj instanceof Map ? obj : new Map(Object.entries(obj));
 }
@@ -523,8 +524,13 @@ export function loadEnglishData(json) {
     if (t > 0) m.set(line.slice(0, t), line.slice(t + 1));
   }
   setEnglishDictionary(m);
+  // 영어 운 꼬리: { "IY.L": "real feel deal", ... } → 단어 → 꼬리
+  EN_TAILS = new Map();
+  for (const tail in json.tails || {}) for (const w of json.tails[tail].split(' ')) EN_TAILS.set(w, tail);
   return m.size;
 }
+// 영어 단어의 운 꼬리(마지막 강세 모음부터의 음소). 사전에 없으면 undefined
+export function englishRhymeTail(word) { return EN_TAILS.get(word); }
 
 // 영어 단어 → 한글 표기(삽입모음 ' 표시) + 출처
 export function englishToHangul(raw, overrides) {
@@ -532,13 +538,13 @@ export function englishToHangul(raw, overrides) {
   if (overrides && overrides.has(w)) return { orth: markEp(overrides.get(w)), src: 'user' };
   // 대문자 약어 (모음 없음): BTS, MC, DJ, YG
   if (raw.length >= 2 && raw.length <= 5 && raw === raw.toUpperCase() && !/[AEIOU]/.test(raw)) return { orth: spellLetters(w), src: 'letters' };
-  if (EN_DICT.has(w)) return { orth: EN_DICT.get(w), src: 'dict' };
+  if (EN_DICT.has(w)) return { orth: EN_DICT.get(w), src: 'dict', key: w };
   const bare = w.replace(/^'+|'+$/g, '');
-  if (EN_DICT.has(bare)) return { orth: EN_DICT.get(bare), src: 'dict' };
+  if (EN_DICT.has(bare)) return { orth: EN_DICT.get(bare), src: 'dict', key: bare };
   // 축약형·접미사
   if (bare.includes("'")) {
     const noAp = bare.replace(/'/g, '');
-    if (EN_DICT.has(noAp)) return { orth: EN_DICT.get(noAp), src: 'dict' };
+    if (EN_DICT.has(noAp)) return { orth: EN_DICT.get(noAp), src: 'dict', key: noAp };
     let m;
     if ((m = /^(.+)in'$/.exec(bare)) && EN_DICT.has(m[1] + 'ing')) return { orth: ingToIn(EN_DICT.get(m[1] + 'ing')), src: 'dict' };
     const suf = { "'s": "스'", "'ll": '을', "'re": '어', "'ve": "브'", "'d": "드'", "n't": "은트'", "'m": '음' };
@@ -589,7 +595,7 @@ export function markEp(s) {
   if (s.includes("'")) return s;
   return s.split('').map((ch, i) => {
     const d = decompose(ch);
-    return d && d.jung === 'ㅡ' && i > 0 ? ch + "'" : ch;
+    return d && d.jung === 'ㅡ' && s.length > 1 ? ch + "'" : ch;
   }).join('');
 }
 
@@ -756,7 +762,11 @@ function convertWord(w, overrides) {
         langs.add('en');
         const r = englishToHangul(p.text, overrides);
         p.orth = r.orth; p.how = r.src;
-        units.push(...parseOrth(r.orth, p.start, p.end, p.text, 'en', true));
+        const enUnits = parseOrth(r.orth, p.start, p.end, p.text, 'en', true);
+        // 영어끼리의 라임 판정용: 단어의 마지막 실제 음절에 운 꼬리를 달아 둔다 (real=리얼 과 feel=필 은 꼬리 IY.L 이 같다)
+        const tail = r.key && EN_TAILS.get(r.key);
+        if (tail) { for (let k = enUnits.length - 1; k >= 0; k--) if (!enUnits[k].ep) { enUnits[k].rt = tail; break; } }
+        units.push(...enUnits);
       } else if (p.type === 'num') {
         langs.add('num');
         const orth = readNumberPart(p, prev, next);
@@ -785,7 +795,7 @@ function convertWord(w, overrides) {
       ch: show(p.cho, dj, p.jong, u.tail),
       orth: show(u.cho, u.jung, u.jong, u.tail),
       cho: p.cho, jung: p.jung, jong: p.jong,
-      ep: !!u.ep, lang: u.lang, src: u.src,
+      ep: !!u.ep, lang: u.lang, src: u.src, rt: u.rt || null,
     };
   });
   word.pron = word.syl.map(s => s.ch).join('');
