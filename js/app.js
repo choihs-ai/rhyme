@@ -1,7 +1,12 @@
-// 라임 스캐너 — 앱 전체 연결
+// 라임 스캐너 — 앱 전체 연결 (화면 상태, 이벤트, 저장, 서비스 워커)
+// 분석은 pronounce.js → rhyme.js, 그리기는 render.js·ui/ 가 맡고 여기서는 그 둘을 잇는다.
 import { analyzePronunciation, loadEnglishData } from './pronounce.js';
 import { analyzeRhymes, describeGroups, DEFAULT_OPTIONS, setLexicon, lexiconFromKo } from './rhyme.js';
-import { renderHighlight, renderScore, renderStructure, renderRecommend, syllableSheet, groupInfoHtml, drawImage, drawScoreCard, buildTextSummary, buildExport, esc } from './render.js';
+import { renderHighlight, renderScore, renderStructure, renderRecommend, syllableSheet, groupInfoHtml } from './render.js';
+import { drawImage, drawScoreCard } from './ui/image.js';
+import { buildTextSummary, buildExport } from './export.js';
+import { $, storage, toast, openSheet, closeSheet, copyText, shareOrDownload, stamp } from './ui/dom.js';
+import { esc } from './ui/highlight.js';
 import { encodeShare, decodeShare, shareCodeFromHash, appBaseUrl } from './share.js';
 import { setDictionaries, recommend, dictionaryCounts } from './recommend.js';
 
@@ -23,21 +28,15 @@ money talks 근데 난 말로 증명해 같이
 어제의 나와 오늘의 나 사이
 그 차이를 만든 건 쉼 없는 grind 매일`;
 
-const $ = s => document.querySelector(s);
-const LS = {
-  get(k, d) { try { const v = localStorage.getItem('rhyme.' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem('rhyme.' + k, JSON.stringify(v)); } catch (e) { /* 저장 불가(사파리 개인정보 보호 모드 등) */ } },
-};
-
 const state = {
-  options: { ...DEFAULT_OPTIONS, ...LS.get('options', {}) },
-  overrides: new Map(Object.entries(LS.get('overrides', {}))),
+  options: { ...DEFAULT_OPTIONS, ...storage.get('options', {}) },
+  overrides: new Map(Object.entries(storage.get('overrides', {}))),
   theme: document.documentElement.dataset.theme || 'dark',
-  themePref: LS.get('theme', 'dark'),
-  showPron: LS.get('showPron', false),
-  showNums: LS.get('showNums', 'auto'),
-  debug: LS.get('debug', true),
-  exclude: new Set(LS.get('exclude', [])),
+  themePref: storage.get('theme', 'dark'),
+  showPron: storage.get('showPron', false),
+  showNums: storage.get('showNums', 'auto'),
+  debug: storage.get('debug', true),
+  exclude: new Set(storage.get('exclude', [])),
   pron: null, rhyme: null, focus: -1, tab: 'hl',
   rec: { lang: 'all', coda: false, last: null },
   demo: false, sharedText: null, lastText: '',
@@ -49,15 +48,15 @@ let dictReady = null;
 function init() {
   $('#ver').textContent = VERSION;
   const ta = $('#lyrics');
-  ta.value = LS.get('draft', '');
+  ta.value = storage.get('draft', '');
   updateCount();
   applyOptionsToUi();
   bindEvents();
   dictReady = loadDictionaries();
   registerSW();
-  const lastVer = LS.get('lastVersion', null);
+  const lastVer = storage.get('lastVersion', null);
   if (lastVer && lastVer !== VERSION) setTimeout(() => toast(`${VERSION}(으)로 업데이트되었습니다`), 600);
-  LS.set('lastVersion', VERSION);
+  storage.set('lastVersion', VERSION);
   const code = shareCodeFromHash();
   if (code) loadShared(code);
   else if (ta.value.trim()) dictReady.then(() => analyze({ quiet: true }));
@@ -214,7 +213,7 @@ function startLineEdit(lineIdx) {
     lines[lineIdx] = inp.value.replace(/\n/g, ' ');
     $('#lyrics').value = lines.join('\n');
     updateCount();
-    LS.set('draft', $('#lyrics').value);
+    storage.set('draft', $('#lyrics').value);
     analyze({ quiet: true, edited: true }).then(() => {
       const r = document.querySelector(`.lyr-line[data-line="${lineIdx}"]`);
       if (r) { r.classList.remove('flash'); void r.offsetWidth; r.classList.add('flash'); }
@@ -230,7 +229,7 @@ function startLineEdit(lineIdx) {
 
 function excludeKeys(keys, msg) {
   keys.forEach(k => state.exclude.add(k));
-  LS.set('exclude', [...state.exclude].slice(-500));
+  storage.set('exclude', [...state.exclude].slice(-500));
   closeSheet();
   analyze({ quiet: true, edited: true }).then(() => toast(msg));
 }
@@ -246,11 +245,11 @@ function renderAll() {
 function bindEvents() {
   const ta = $('#lyrics');
   let draftT = 0;
-  ta.addEventListener('input', () => { updateCount(); clearTimeout(draftT); draftT = setTimeout(() => LS.set('draft', ta.value), 400); });
+  ta.addEventListener('input', () => { updateCount(); clearTimeout(draftT); draftT = setTimeout(() => storage.set('draft', ta.value), 400); });
   $('#btn-analyze').addEventListener('click', () => analyze());
   ta.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') analyze(); });
-  $('#btn-sample').addEventListener('click', () => { ta.value = SAMPLE; updateCount(); LS.set('draft', SAMPLE); analyze(); });
-  $('#btn-clear').addEventListener('click', () => { ta.value = ''; updateCount(); LS.set('draft', ''); ta.focus(); });
+  $('#btn-sample').addEventListener('click', () => { ta.value = SAMPLE; updateCount(); storage.set('draft', SAMPLE); analyze(); });
+  $('#btn-clear').addEventListener('click', () => { ta.value = ''; updateCount(); storage.set('draft', ''); ta.focus(); });
   // 예시 가사가 들어 있을 때 입력칸을 누르면 비워서 바로 붙여 넣을 수 있게
   ta.addEventListener('focus', () => { if (state.demo && ta.value === DEMO) { ta.value = ''; updateCount(); } });
   $('#notice').addEventListener('click', e => { if (e.target.closest('[data-mine]')) startMine(); });
@@ -290,7 +289,7 @@ function bindEvents() {
     if (ed) { startLineEdit(+ed.dataset.edit); return; }
     if (e.target.id === 'excl-undo') {
       state.rhyme.excludedKeys.forEach(k => state.exclude.delete(k));
-      LS.set('exclude', [...state.exclude]);
+      storage.set('exclude', [...state.exclude]);
       analyze({ quiet: true, edited: true }).then(() => toast('뺀 라임을 되돌렸습니다'));
       return;
     }
@@ -301,7 +300,7 @@ function bindEvents() {
     if (s && state.pron) openSyllable(+s.dataset.s);
   });
   $('#panel-hl').addEventListener('change', e => {
-    if (e.target.id === 'hl-pron') { state.showPron = e.target.checked; LS.set('showPron', state.showPron); renderHighlight($('#panel-hl'), state); }
+    if (e.target.id === 'hl-pron') { state.showPron = e.target.checked; storage.set('showPron', state.showPron); renderHighlight($('#panel-hl'), state); }
   });
   // 점수 → 줄로 이동
   $('#panel-score').addEventListener('click', e => {
@@ -365,7 +364,7 @@ function bindEvents() {
 
 function setOption(k, v) {
   state.options[k] = v;
-  LS.set('options', state.options);
+  storage.set('options', state.options);
   applyOptionsToUi();
   if (state.rhyme) analyze({ quiet: true });
 }
@@ -418,14 +417,14 @@ function saveOverride() {
   if (!val) { deleteOverride(word); return; }
   if (!/^[가-힣']+$/.test(val)) { toast('한글로만 적어 주세요 (예: 머니)'); return; }
   state.overrides.set(word, val);
-  LS.set('overrides', Object.fromEntries(state.overrides));
+  storage.set('overrides', Object.fromEntries(state.overrides));
   closeSheet();
   toast(`“${word}” 발음을 [${val}]로 저장했습니다`);
   analyze({ quiet: true });
 }
 function deleteOverride(word) {
   state.overrides.delete(word);
-  LS.set('overrides', Object.fromEntries(state.overrides));
+  storage.set('overrides', Object.fromEntries(state.overrides));
   closeSheet();
   toast(`“${word}” 발음 수정을 취소했습니다`);
   if (state.rhyme) analyze({ quiet: true });
@@ -445,15 +444,15 @@ async function runRecommend() {
 
 // ───────────────────────── 최근 분석 ─────────────────────────
 function saveRecent(text, replaceLatest = false) {
-  let list = LS.get('recent', []);
+  let list = storage.get('recent', []);
   if (replaceLatest && list.length) list.shift(); // 줄 고치기는 같은 가사의 새 버전으로 덮어쓴다
   list = list.filter(r => r.text !== text);
   const first = text.split('\n').map(s => s.trim()).find(s => s && !/^[\[(]/.test(s)) || text.trim().slice(0, 30);
   list.unshift({ ts: Date.now(), title: first.slice(0, 40), lines: text.split('\n').filter(l => l.trim()).length, text, score: state.rhyme ? state.rhyme.scores.total : null });
-  LS.set('recent', list.slice(0, 10));
+  storage.set('recent', list.slice(0, 10));
 }
 function openRecent() {
-  const list = LS.get('recent', []);
+  const list = storage.get('recent', []);
   let h = '';
   if (!list.length) h = '<div class="empty">아직 분석한 가사가 없습니다.</div>';
   else {
@@ -468,13 +467,13 @@ function openRecent() {
     body.addEventListener('click', e => {
       const ld = e.target.closest('[data-load]');
       if (ld) {
-        const r = LS.get('recent', [])[+ld.dataset.load];
-        if (r) { $('#lyrics').value = r.text; updateCount(); LS.set('draft', r.text); closeSheet(); analyze(); }
+        const r = storage.get('recent', [])[+ld.dataset.load];
+        if (r) { $('#lyrics').value = r.text; updateCount(); storage.set('draft', r.text); closeSheet(); analyze(); }
         return;
       }
       const del = e.target.closest('[data-del]');
-      if (del) { const l = LS.get('recent', []); l.splice(+del.dataset.del, 1); LS.set('recent', l); openRecent(); return; }
-      if (e.target.id === 'recent-clear') { LS.set('recent', []); openRecent(); }
+      if (del) { const l = storage.get('recent', []); l.splice(+del.dataset.del, 1); storage.set('recent', l); openRecent(); return; }
+      if (e.target.id === 'recent-clear') { storage.set('recent', []); openRecent(); }
     });
   });
 }
@@ -499,12 +498,12 @@ function openSettings() {
       if (b) {
         const which = b.parentElement.dataset.set, v = b.dataset.v;
         setSeg(b.parentElement, v);
-        if (which === 'theme') { state.themePref = v; LS.set('theme', v); applyTheme(); }
-        if (which === 'nums') { state.showNums = v; LS.set('showNums', v); if (state.rhyme) renderHighlight($('#panel-hl'), state); }
+        if (which === 'theme') { state.themePref = v; storage.set('theme', v); applyTheme(); }
+        if (which === 'nums') { state.showNums = v; storage.set('showNums', v); if (state.rhyme) renderHighlight($('#panel-hl'), state); }
         return;
       }
       const od = e.target.closest('[data-ovdel]');
-      if (od) { state.overrides.delete(od.dataset.ovdel); LS.set('overrides', Object.fromEntries(state.overrides)); openSettings(); if (state.rhyme) analyze({ quiet: true }); return; }
+      if (od) { state.overrides.delete(od.dataset.ovdel); storage.set('overrides', Object.fromEntries(state.overrides)); openSettings(); if (state.rhyme) analyze({ quiet: true }); return; }
       if (e.target.id === 'set-update') {
         const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
         if (reg) { await reg.update(); toast('업데이트를 확인했습니다. 새 버전이 있으면 자동으로 적용됩니다.'); } else toast('서비스 워커가 없습니다');
@@ -516,7 +515,7 @@ function openSettings() {
         location.reload();
       }
     });
-    body.addEventListener('change', e => { if (e.target.id === 'set-debug') { state.debug = e.target.checked; LS.set('debug', state.debug); } });
+    body.addEventListener('change', e => { if (e.target.id === 'set-debug') { state.debug = e.target.checked; storage.set('debug', state.debug); } });
   });
 }
 function applyTheme() {
@@ -529,59 +528,7 @@ function applyTheme() {
 }
 matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', () => { if (state.themePref === 'system') applyTheme(); });
 
-// ───────────────────────── 시트 / 토스트 ─────────────────────────
-let lastFocus = null;
-function openSheet(title, html, onMount) {
-  const sheet = $('#sheet');
-  lastFocus = document.activeElement;
-  $('#sheet-title').textContent = title;
-  const body = $('#sheet-body');
-  const fresh = body.cloneNode(false); // 이전 리스너 제거
-  body.replaceWith(fresh);
-  fresh.innerHTML = html;
-  sheet.hidden = false;
-  document.body.style.overflow = 'hidden';
-  if (onMount) onMount(fresh);
-  sheet.querySelector('.sheet-head .icon-btn').focus({ preventScroll: true });
-}
-function closeSheet() {
-  $('#sheet').hidden = true;
-  document.body.style.overflow = '';
-  if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
-}
-let toastT = 0;
-function toast(msg) {
-  const t = $('#toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastT);
-  toastT = setTimeout(() => t.classList.remove('show'), 2600);
-}
-
 // ───────────────────────── 내보내기 ─────────────────────────
-async function copyText(text) {
-  try { await navigator.clipboard.writeText(text); return true; } catch (e) {
-    const ta = document.createElement('textarea');
-    ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta); ta.select();
-    let ok = false; try { ok = document.execCommand('copy'); } catch (_) { /* 무시 */ }
-    ta.remove();
-    return ok;
-  }
-}
-async function shareOrDownload(blob, filename, title) {
-  const file = new File([blob], filename, { type: blob.type });
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], title }); return 'shared'; } catch (e) { if (e.name === 'AbortError') return 'cancel'; }
-  }
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000);
-  return 'downloaded';
-}
-const stamp = () => { const d = new Date(); return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}`; };
 async function exportImage() {
   if (!state.rhyme) return;
   const canvas = drawImage(state, VERSION);

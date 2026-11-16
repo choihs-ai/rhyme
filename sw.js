@@ -9,7 +9,11 @@ const PAGE_CACHE = 'rhyme-pages';
 
 const APP_FILES = [
   './', 'index.html', 'css/style.css', 'css/guide.css',
-  'js/app.js', 'js/share.js', 'js/pronounce.js', 'js/rhyme.js', 'js/render.js', 'js/recommend.js',
+  'js/app.js', 'js/share.js', 'js/pronounce.js', 'js/rhyme.js', 'js/render.js', 'js/recommend.js', 'js/export.js',
+  'js/pron/hangul.js', 'js/pron/numbers.js', 'js/pron/english.js',
+  'js/rhyme/similarity.js', 'js/rhyme/endings.js', 'js/rhyme/units.js', 'js/rhyme/candidates.js', 'js/rhyme/groups.js',
+  'js/rhyme/result.js', 'js/rhyme/scheme.js', 'js/rhyme/score.js',
+  'js/ui/dom.js', 'js/ui/highlight.js', 'js/ui/image.js',
   'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png',
 ];
 const DATA_FILES = ['data/ko-words.json', 'data/en-words.json'];

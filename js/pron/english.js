@@ -68,7 +68,7 @@ export function phonesToHangul(input, spelling = '') {
   if (!vIdx.length) {
     // 모음이 없으면 자음마다 '으'
     P.forEach(x => out.push(epSyl(x.c, true)));
-    return render(out);
+    return syllablesToText(out);
   }
   let prevV = null; // 직전 모음 음소
   let pos = 0;
@@ -126,7 +126,7 @@ export function phonesToHangul(input, spelling = '') {
   if (lastV && lastV.ph === 'AH' && lastV.s === 0 && !lastV.jong && /a$/.test(spelling)) lastV.jung = 'ㅏ';
   // 어말 OW (L·R·D·N 뒤) → 오우 표기 (flow→플로우, window→윈도우)
   if (lastV && lastV.ph === 'OW' && !lastV.jong && lastV === out[out.length - 1] && ['ㄹ','ㄷ','ㄴ'].includes(lastV.cho)) lastV.tail = '우';
-  return render(out);
+  return syllablesToText(out);
 }
 
 function epSyl(c, isFinal) {
@@ -168,10 +168,10 @@ function placeFinalCluster(out, cl, prevV) {
     else if (c === 'G' && (prevV === 'AE' || prevV === 'IH') && rest.length === 1) { p.jong = 'ㄱ'; rest.shift(); }
   }
   rest.forEach((c, i) => out.push(epSyl(c, i === rest.length - 1)));
-  // 어말 L 앞 비강세 모음 → 으 (little→리틀, hustle→허슬)
 }
 
-function render(out) {
+// 음절 배열 → 표기 문자열 (삽입모음 뒤에 ' 를 붙인다)
+function syllablesToText(out) {
   return out.map(x => compose(x.cho, x.jung, x.jong) + (x.tail || '') + (x.ep ? "'" : '')).join('');
 }
 
