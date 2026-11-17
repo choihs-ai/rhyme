@@ -1,5 +1,7 @@
 # 라임 스캐너
 
+[![test](https://github.com/choihs-ai/rhyme/actions/workflows/test.yml/badge.svg)](https://github.com/choihs-ai/rhyme/actions/workflows/test.yml)
+
 한국어와 영어가 섞인 랩 가사를 붙여 넣으면 라임을 찾아 색으로 표시하고, 점수와 끝라임 구조를 계산하고, 라임이 맞는 단어를 추천하는 웹앱입니다. 서버 없이 브라우저에서만 돌아가고, 한 번 열어 두면 오프라인에서도 실행됩니다.
 
 **데모: https://choihs-ai.github.io/rhyme/** (설치·가입 없음, 첫 화면에 예시 가사 분석이 바로 보입니다)
