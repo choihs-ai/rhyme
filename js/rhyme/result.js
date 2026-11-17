@@ -9,6 +9,9 @@ import { compose } from '../pron/hangul.js';
  */
 export function buildResult(ctx, groups) {
   const { pron, S, U, aligned, spanKey } = ctx;
+  // 원문에서 차지하는 범위. 이중모음의 뒷소리(I = 아+이 의 '이')는 원문 글자가 없어서, 거기서 시작하면
+  // 앞 단어와의 사이 공백이 딸려 온다. 글자가 있는 첫 음절부터 잡는다.
+  const srcSpan = (a, b) => { while (a < b && S[a].src[1] === S[a].src[0]) a++; return [S[a].src[0], S[b].src[1]]; };
   const outGroups = groups.map((ms, id) => {
     // 대표 = 가장 긴 멤버 (같으면 먼저 나온 것)
     const rep = ms.reduce((best, m) => (m.L > best.L ? m : best), ms[0]);
@@ -30,9 +33,9 @@ export function buildResult(ctx, groups) {
       members: ms.map(m => ({
         key: spanKey(m.a, m.L),
         start: m.a, len: m.L, units: Array.from({ length: m.L }, (_, t) => m.a + t), repeat: m.repeat, line: S[m.a].line, ln: S[m.a].ln,
-        text: pron.text.slice(S[m.a].src[0], S[m.end].src[1]),
+        text: pron.text.slice(...srcSpan(m.a, m.end)),
         pron: Array.from({ length: m.L }, (_, t) => S[m.a + t].ch).join(''),
-        src: [S[m.a].src[0], S[m.end].src[1]],
+        src: srcSpan(m.a, m.end),
         lineEnd: U[m.end].le,
       })),
     };
@@ -50,7 +53,7 @@ export function buildResult(ctx, groups) {
     let a = m.units[0], b = m.units[m.units.length - 1];
     while (a - 1 >= 0 && S[a - 1].ep && S[a - 1].word === S[a].word && sylColor[a - 1] < 0) { a--; sylColor[a] = g.id; sylExt[a] = 1; sylMember[a] = mi; }
     while (b + 1 < S.length && S[b + 1].ep && S[b + 1].word === S[b].word && sylColor[b + 1] < 0) { b++; sylColor[b] = g.id; sylExt[b] = 1; sylMember[b] = mi; }
-    m.src = [S[a].src[0], S[b].src[1]];
+    m.src = srcSpan(a, b);
     m.text = pron.text.slice(m.src[0], m.src[1]);
     m.pron = S.slice(a, b + 1).map(x => x.ch).join('');
   }));
