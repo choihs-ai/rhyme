@@ -300,7 +300,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 
 /* ── 내보내기 / 하단 ── */
 .export-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 18px; }
-.export-bar button { display: flex; align-items: center; justify-content: center; gap: 6px; height: 44px; border-radius: 12px; background: var(--surface-1); border: 1px solid var(--line); font-size: 14px; }
+.export-bar button { display: flex; align-items: center; justify-content: center; gap: 6px; height: 44px; border-radius: 12px; background: var(--surface-1); border: 1px solid var(--line); font-size: 14px; white-space: nowrap; }
+.export-bar svg { flex: none; }
+@media (max-width: 359px) { .export-bar button { gap: 4px; font-size: 13px; } .export-bar button:not(.wide) svg { display: none; } }
 .export-bar svg { width: 18px; height: 18px; color: var(--text-secondary); }
 .export-bar .wide { grid-column: span 2; }
 .export-bar .accent { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
