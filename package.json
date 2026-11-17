@@ -1,0 +1,13 @@
+{
+  "name": "rhyme-scanner",
+  "version": "1.4.0",
+  "private": true,
+  "description": "한국어·영어 랩 가사의 라임을 찾아 주는 정적 웹앱",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/run.mjs",
+    "test:gold": "node tests/gold.test.mjs",
+    "test:e2e": "node tests/e2e.cjs",
+    "compare": "node tests/gold/compare.mjs"
+  }
+}
