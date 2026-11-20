@@ -16,7 +16,7 @@
 |---|---|
 | 만든 사람 | 1인 개발 (기획, 분석 엔진, 화면, 테스트, 배포) |
 | 기술 | HTML, CSS, JavaScript(ES 모듈). 프레임워크와 빌드 도구 없음. 런타임 의존 패키지 0개 |
-| 규모 | 분석·화면 코드 21개 모듈 약 3,200줄, 한국어 38,566단어와 영어 20,000단어 사전 |
+| 규모 | 분석·화면 코드 21개 모듈 약 3,200줄, 한국어 106,971단어와 영어 50,000단어 사전 |
 | 배포 | GitHub Pages, PWA(홈 화면 추가, 오프라인 실행) |
 | 검증 | 직접 쓴 가사 89편의 정답 세트로 자동 채점, 푸시할 때마다 GitHub Actions 실행 |
 
@@ -148,7 +148,7 @@ tests/                  테스트
 
 - **빌드 도구 없음.** 저장소에 푸시한 파일이 그대로 배포본입니다. 모듈이 21개라 번들러 없이도 첫 로딩에 문제가 없고, 서비스 워커가 한 번에 캐시합니다.
 - **서버 없음.** 분석을 전부 브라우저에서 합니다. 가사가 기기 밖으로 나가지 않고, 운영 비용이 없습니다. 260줄 가사를 0.1초 안에 분석합니다.
-- **사전은 미리 계산해서 싣는다.** 발음 사전 원본(13만 단어)을 다 싣지 않고, 빈도 상위 20,000단어의 한글 표기와 운 꼬리를 빌드 때 계산해 둡니다. 두 사전을 합쳐 1.5MB, gzip 전송 기준 0.6MB입니다.
+- **사전은 미리 계산해서 싣는다.** 영어 발음 사전 원본(13만 단어)을 다 싣지 않고, 빈도 상위 50,000단어의 한글 표기와 운 꼬리를 빌드 때 계산해 둡니다. 한국어는 단어마다 실제 발음의 운을 미리 구해 색인으로 싣습니다. 두 사전을 합쳐 4.5MB, gzip 전송 기준 1.7MB이고, 처음 접속할 때 한 번 받아 서비스 워커가 캐시합니다.
 
 ## 사용법
 
@@ -208,11 +208,15 @@ npm run test:e2e         # 브라우저 테스트 (Playwright 필요)
 
 ```bash
 pip install kiwipiepy wordfreq cmudict
-curl -O https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/ko/ko_50k.txt
-python3 -c "import wordfreq as w; d=w.get_frequency_dict('ko'); open('wf-ko.txt','w').writelines(f'{k}\t{int(v*1e8)}\n' for k,v in sorted(d.items(),key=lambda x:-x[1])[:80000]); open('wf-en.txt','w').writelines(x+'\n' for x in w.top_n_list('en',40000))"
-python3 tools/build-ko-list.py ko_50k.txt wf-ko.txt > ko-list.tsv
-node tools/build-data.mjs --cmu "$(python3 -c 'import cmudict,os;print(os.path.join(os.path.dirname(cmudict.__file__),"data","cmudict.dict"))')" --en-freq wf-en.txt --ko-list ko-list.tsv
+sudo apt-get install hunspell hunspell-en-us      # 영어 추천에서 인명·지명을 거르는 데만 쓴다
+curl -O https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/ko/ko_full.txt
+python3 -c "import wordfreq as w; d=w.get_frequency_dict('ko'); open('wf-ko.txt','w').writelines(f'{k}\t{int(v*1e8)}\n' for k,v in sorted(d.items(),key=lambda x:-x[1])); open('wf-en.txt','w').writelines(x+'\n' for x in w.top_n_list('en',200000))"
+python3 tools/build-ko-list.py ko_full.txt wf-ko.txt > ko-list.tsv
+grep -v "'" wf-en.txt | hunspell -d en_US -G > en-ok.txt
+node tools/build-data.mjs --cmu "$(python3 -c 'import cmudict,os;print(os.path.join(os.path.dirname(cmudict.__file__),"data","cmudict.dict"))')" --en-freq wf-en.txt --ko-list ko-list.tsv --en-rec-ok en-ok.txt
 ```
+
+한국어 목록은 자막 빈도 3 이상인 어절을 Kiwi로 분류하고, Kiwi 형태소 사전에서 표준 명사·부사·감탄사를 보탭니다. 기준은 `tools/build-ko-list.py` 맨 위 설명에 있습니다.
 
 랩 영어 예외 사전은 `tools/data-src/en-rap.txt`(형식: `단어 한글발음`)를 고친 뒤 위 명령으로 다시 만듭니다.
 
@@ -236,6 +240,6 @@ node tools/build-data.mjs --cmu "$(python3 -c 'import cmudict,os;print(os.path.j
 
 ## 데이터 출처와 라이선스
 
-- 한국어 단어: [FrequencyWords](https://github.com/hermitdave/FrequencyWords) ko_50k (OpenSubtitles 2018, CC BY-SA 4.0), [wordfreq](https://github.com/rspeer/wordfreq) 한국어 목록 (CC BY-SA 4.0). 빌드 때 [Kiwi](https://github.com/bab2min/kiwipiepy) 형태소 분석기로 분류했습니다.
-- 영어 발음: [CMU Pronouncing Dictionary](https://github.com/cmusphinx/cmudict) (BSD 2-Clause). 빈도는 wordfreq 영어 목록을 썼습니다.
+- 한국어 단어: [FrequencyWords](https://github.com/hermitdave/FrequencyWords) ko_full (OpenSubtitles 2018, CC BY-SA 4.0), [wordfreq](https://github.com/rspeer/wordfreq) 한국어 목록 (CC BY-SA 4.0), [Kiwi](https://github.com/bab2min/kiwipiepy) 형태소 사전 (Apache-2.0). 빌드 때 Kiwi 형태소 분석기로 분류했습니다.
+- 영어 발음: [CMU Pronouncing Dictionary](https://github.com/cmusphinx/cmudict) (BSD 2-Clause). 빈도는 wordfreq 영어 목록을 썼습니다. 추천 단어 거르기에 Hunspell en_US 사전(SCOWL)을 빌드 때만 썼습니다.
 - `data/`의 사전 파일은 위 CC BY-SA 4.0 데이터에서 만들었으므로 CC BY-SA 4.0으로 배포합니다.

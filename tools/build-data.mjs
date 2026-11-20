@@ -1,11 +1,13 @@
 // 사전 데이터 생성기 (빌드 도구 — 앱 실행에는 필요 없음)
 //
-//   node tools/build-data.mjs --cmu cmudict.dict --en-freq wf-en.txt --ko-list ko-list.tsv
+//   node tools/build-data.mjs --cmu cmudict.dict --en-freq wf-en.txt --ko-list ko-list.tsv [--en-size 50000] [--en-rec 20000] [--en-rec-ok en-ok.txt]
 //
 // 입력
 //   cmudict.dict  : CMU Pronouncing Dictionary (BSD) — pip install cmudict 의 data/cmudict.dict
-//   wf-en.txt     : 영어 빈도 순 단어 목록(한 줄에 한 단어) — wordfreq.top_n_list('en', 40000)
+//   wf-en.txt     : 영어 빈도 순 단어 목록(한 줄에 한 단어). wordfreq.top_n_list('en', 200000)
 //   ko-list.tsv   : tools/build-ko-list.py 출력 (단어, 빈도, tier)
+//   en-ok.txt     : (선택) 추천에 내보내도 되는 영어 단어 목록. 맞춤법 사전이 소문자로 받아 주는 단어만 넣어 인명·지명을 거른다
+//                   grep -v "'" wf-en.txt | hunspell -d en_US -G > en-ok.txt
 //   tools/data-src/en-rap.txt : 직접 작성한 랩 영어 발음 예외 사전
 // 출력
 //   data/en-words.json, data/ko-words.json
@@ -20,8 +22,9 @@ import { arpabetToHangul, setEnglishDictionary, analyzePronunciation, compose, d
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = Object.fromEntries(process.argv.slice(2).reduce((acc, a, i, arr) => (a.startsWith('--') ? acc.concat([[a.slice(2), arr[i + 1]]]) : acc), []));
-const EN_DICT_SIZE = +(args['en-size'] || 20000);
-const EN_REC_SIZE = +(args['en-rec'] || 5000);
+const EN_DICT_SIZE = +(args['en-size'] || 50000);   // 발음 사전에 넣을 단어 수 (빈도순)
+const EN_REC_SIZE = +(args['en-rec'] || 20000);     // 그중 추천에 내보낼 단어 수
+const EN_REC_OK = args['en-rec-ok'] ? new Set(fs.readFileSync(args['en-rec-ok'], 'utf8').split('\n').map(s => s.trim()).filter(Boolean)) : null;
 
 export function rimeKey(syls) {
   return syls.map(s => compose('ㅇ', s.jung, s.jong)).join('');
@@ -76,10 +79,12 @@ function buildEnglish() {
   for (const w of freq) {
     if (dict.size >= EN_DICT_SIZE) break;
     if (!/^[a-z][a-z']*$/.test(w) || (w.length < 2 && w !== 'a' && w !== 'i')) continue;
+    // 소유격(novel's)은 앱이 접미사 규칙으로 읽으므로 자리를 쓰지 않는다
+    if (/'s$/.test(w)) continue;
     const ph = cmu.get(w);
     if (!ph) continue;
     if (!dict.has(w)) dict.set(w, arpabetToHangul(ph, w));
-    if (common.length < EN_REC_SIZE && w.length >= 3 && !w.includes("'")) common.push(w);
+    if (common.length < EN_REC_SIZE && w.length >= 3 && !w.includes("'") && (!EN_REC_OK || EN_REC_OK.has(w))) common.push(w);
   }
   setEnglishDictionary(dict);
   // 3) 추천용 색인: 랩 단어 + 흔한 단어
@@ -147,7 +152,7 @@ function buildKorean() {
   const out = {
     v: 1,
     note: 'ko-words: 한국어 단어 사전. idx 키 = 실제 발음의 운(초성→ㅇ) 문자열, 값 = "기본어 …|활용형 …" (각각 빈도순).',
-    sources: ['FrequencyWords ko_50k (OpenSubtitles 2018, CC-BY-SA 4.0)', 'wordfreq Korean (CC-BY-SA 4.0)', 'Kiwi 형태소 분석으로 분류'],
+    sources: ['FrequencyWords ko_full (OpenSubtitles 2018, CC-BY-SA 4.0)', 'wordfreq Korean (CC-BY-SA 4.0)', 'Kiwi 형태소 사전 (Apache-2.0)', 'Kiwi 형태소 분석으로 분류'],
     count: n,
     idx: Object.fromEntries(Object.entries(idx).map(([k, [a, b]]) => [k, b.length ? a.join(' ') + '|' + b.join(' ') : a.join(' ')])),
   };
