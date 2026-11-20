@@ -1,0 +1,758 @@
+# 이름·브랜드 사전 (라임 단어 추천에서 '이름·브랜드'를 켰을 때만 섞인다)
+# 직접 작성. 랩 가사에 자주 나오는 브랜드, 지명, 인물, 캐릭터를 모았다.
+#
+# 형식
+#   @분류                  이 줄 아래 항목의 분류
+#   한글 표기              한국어로 쓰는 이름 (손흥민, 강남, 나폴레옹)
+#   영어 표기 = 한글 발음   영어로 쓰는 이름 (gucci = 구찌). 띄어 쓴 이름도 된다 (louis vuitton = 루이비통)
+#
+# 한국 랩에서 실제로 읽는 소리를 적었다 (lamborghini 는 램버기니가 아니라 람보르기니).
+# 이미 일반 사전에 있는 낱말(서울, 하와이)은 빌드할 때 빠진다.
+
+@패션
+gucci = 구찌
+prada = 프라다
+chanel = 샤넬
+dior = 디올
+versace = 베르사체
+balenciaga = 발렌시아가
+louis vuitton = 루이비통
+hermes = 에르메스
+fendi = 펜디
+givenchy = 지방시
+burberry = 버버리
+celine = 셀린느
+saint laurent = 생로랑
+bottega = 보테가
+valentino = 발렌티노
+moncler = 몽클레어
+armani = 아르마니
+dolce gabbana = 돌체앤가바나
+margiela = 마르지엘라
+rick owens = 릭오웬스
+vetements = 베트멍
+chrome hearts = 크롬하츠
+goyard = 고야드
+loewe = 로에베
+miu miu = 미우미우
+off white = 오프화이트
+supreme = 슈프림
+stussy = 스투시
+bape = 베이프
+palace = 팔라스
+carhartt = 칼하트
+stone island = 스톤아일랜드
+north face = 노스페이스
+patagonia = 파타고니아
+nike = 나이키
+adidas = 아디다스
+puma = 푸마
+reebok = 리복
+vans = 반스
+converse = 컨버스
+new balance = 뉴발란스
+air jordan = 에어조던
+air force = 에어포스
+yeezy = 이지
+timberland = 팀버랜드
+dr martens = 닥터마틴
+levis = 리바이스
+calvin klein = 캘빈클라인
+tommy hilfiger = 타미힐피거
+ralph lauren = 랄프로렌
+lacoste = 라코스테
+fila = 휠라
+champion = 챔피언
+uniqlo = 유니클로
+zara = 자라
+gentle monster = 젠틀몬스터
+ray ban = 레이밴
+oakley = 오클리
+birkin = 버킨
+kelly bag = 켈리백
+무신사
+
+@자동차
+lamborghini = 람보르기니
+ferrari = 페라리
+porsche = 포르쉐
+bentley = 벤틀리
+rolls royce = 롤스로이스
+maybach = 마이바흐
+bugatti = 부가티
+mclaren = 맥라렌
+benz = 벤츠
+maserati = 마세라티
+aston martin = 애스턴마틴
+cadillac = 캐딜락
+tesla = 테슬라
+audi = 아우디
+bmw = 비엠더블유
+jeep = 지프
+hummer = 허머
+range rover = 레인지로버
+lexus = 렉서스
+jaguar = 재규어
+volvo = 볼보
+mustang = 머스탱
+camaro = 카마로
+corvette = 콜벳
+chevrolet = 쉐보레
+escalade = 에스컬레이드
+urus = 우루스
+cullinan = 컬리넌
+phantom = 팬텀
+koenigsegg = 코닉세그
+pagani = 파가니
+harley davidson = 할리데이비슨
+ducati = 두카티
+vespa = 베스파
+cybertruck = 사이버트럭
+제네시스
+그랜저
+
+@시계·보석
+rolex = 롤렉스
+cartier = 까르띠에
+patek philippe = 파텍필립
+audemars piguet = 오데마피게
+richard mille = 리차드밀
+omega = 오메가
+tiffany = 티파니
+bvlgari = 불가리
+chopard = 쇼파드
+van cleef = 반클리프
+swarovski = 스와로브스키
+hublot = 위블로
+breitling = 브라이틀링
+tag heuer = 태그호이어
+g shock = 지샥
+vacheron = 바쉐론
+daytona = 데이토나
+submariner = 서브마리너
+
+@기업·앱
+apple = 애플
+iphone = 아이폰
+ipad = 아이패드
+macbook = 맥북
+airpods = 에어팟
+galaxy = 갤럭시
+google = 구글
+youtube = 유튜브
+netflix = 넷플릭스
+instagram = 인스타그램
+insta = 인스타
+facebook = 페이스북
+tiktok = 틱톡
+twitter = 트위터
+spotify = 스포티파이
+soundcloud = 사운드클라우드
+amazon = 아마존
+microsoft = 마이크로소프트
+playstation = 플레이스테이션
+nintendo = 닌텐도
+xbox = 엑스박스
+disney = 디즈니
+marvel = 마블
+pixar = 픽사
+lego = 레고
+barbie = 바비
+hello kitty = 헬로키티
+pokemon = 포켓몬
+paypal = 페이팔
+bitcoin = 비트코인
+ethereum = 이더리움
+dogecoin = 도지코인
+spacex = 스페이스엑스
+nasa = 나사
+grammy = 그래미
+billboard = 빌보드
+삼성
+카카오
+카카오톡
+네이버
+쿠팡
+배민
+토스
+멜론
+당근마켓
+올리브영
+다이소
+이마트
+하이브
+와이지
+에스엠
+제이와이피
+쇼미더머니
+고등래퍼
+
+@음식·음료
+starbucks = 스타벅스
+mcdonalds = 맥도날드
+burger king = 버거킹
+subway = 서브웨이
+coca cola = 코카콜라
+pepsi = 펩시
+sprite = 스프라이트
+red bull = 레드불
+heineken = 하이네켄
+corona = 코로나
+hennessy = 헤네시
+moet = 모엣
+dom perignon = 돔페리뇽
+jack daniels = 잭다니엘
+johnnie walker = 조니워커
+smirnoff = 스미노프
+ciroc = 씨록
+patron = 패트론
+jameson = 제임슨
+absolut = 앱솔루트
+bacardi = 바카디
+marlboro = 말보로
+nutella = 누텔라
+oreo = 오레오
+pringles = 프링글스
+haribo = 하리보
+doritos = 도리토스
+chupa chups = 츄파춥스
+skittles = 스키틀즈
+신라면
+불닭
+초코파이
+바나나우유
+새우깡
+허니버터칩
+참이슬
+처음처럼
+진로
+카스
+테라
+막걸리
+떡볶이
+삼겹살
+치맥
+
+@해외 지명
+new york = 뉴욕
+los angeles = 로스앤젤레스
+hollywood = 할리우드
+brooklyn = 브루클린
+bronx = 브롱크스
+harlem = 할렘
+queens = 퀸즈
+manhattan = 맨해튼
+compton = 컴턴
+atlanta = 애틀랜타
+chicago = 시카고
+detroit = 디트로이트
+houston = 휴스턴
+miami = 마이애미
+vegas = 베가스
+las vegas = 라스베가스
+california = 캘리포니아
+texas = 텍사스
+toronto = 토론토
+london = 런던
+paris = 파리
+tokyo = 도쿄
+osaka = 오사카
+shibuya = 시부야
+berlin = 베를린
+rome = 로마
+milano = 밀라노
+monaco = 모나코
+ibiza = 이비자
+dubai = 두바이
+bali = 발리
+hawaii = 하와이
+cancun = 칸쿤
+mexico = 멕시코
+havana = 하바나
+rio = 리우
+boston = 보스턴
+san francisco = 샌프란시스코
+oakland = 오클랜드
+memphis = 멤피스
+new orleans = 뉴올리언스
+philly = 필리
+jamaica = 자메이카
+amsterdam = 암스테르담
+barcelona = 바르셀로나
+madrid = 마드리드
+venice = 베니스
+sydney = 시드니
+singapore = 싱가포르
+hong kong = 홍콩
+shanghai = 상하이
+bangkok = 방콕
+moscow = 모스크바
+cairo = 카이로
+egypt = 이집트
+sahara = 사하라
+himalaya = 히말라야
+alaska = 알래스카
+atlantis = 아틀란티스
+babylon = 바빌론
+wall street = 월스트리트
+broadway = 브로드웨이
+times square = 타임스퀘어
+beverly hills = 베버리힐스
+malibu = 말리부
+santa monica = 산타모니카
+silicon valley = 실리콘밸리
+gotham = 고담
+wakanda = 와칸다
+neverland = 네버랜드
+
+@국내 지명
+서울
+부산
+대구
+인천
+광주
+대전
+울산
+제주
+강남
+강북
+홍대
+합정
+망원
+연남
+신촌
+이태원
+한남
+압구정
+청담
+신사
+가로수길
+성수
+을지로
+종로
+명동
+동대문
+남대문
+여의도
+잠실
+노량진
+신림
+건대
+왕십리
+수유
+노원
+마포
+용산
+서초
+송파
+강동
+은평
+관악
+구로
+영등포
+해운대
+광안리
+서면
+남포동
+수원
+일산
+분당
+판교
+송도
+의정부
+춘천
+강릉
+속초
+전주
+경주
+포항
+목포
+여수
+순천
+안동
+한강
+남산
+북한산
+한라산
+백두산
+독도
+남산타워
+롯데타워
+청계천
+광화문
+경복궁
+대한민국
+
+@해외 아티스트
+drake = 드레이크
+kanye = 칸예
+kanye west = 칸예웨스트
+ye = 예
+jay z = 제이지
+eminem = 에미넴
+slim shady = 슬림셰이디
+tupac = 투팍
+biggie = 비기
+notorious = 노토리어스
+nas = 나스
+kendrick = 켄드릭
+kendrick lamar = 켄드릭라마
+j cole = 제이콜
+travis scott = 트래비스스캇
+migos = 미고스
+lil wayne = 릴웨인
+fifty cent = 피프티센트
+snoop dogg = 스눕독
+dr dre = 닥터드레
+ice cube = 아이스큐브
+pharrell = 퍼렐
+beyonce = 비욘세
+rihanna = 리한나
+nicki minaj = 니키미나즈
+cardi b = 카디비
+doja cat = 도자캣
+post malone = 포스트말론
+weeknd = 위켄드
+bruno mars = 브루노마스
+michael jackson = 마이클잭슨
+madonna = 마돈나
+lady gaga = 레이디가가
+taylor swift = 테일러스위프트
+ariana grande = 아리아나그란데
+justin bieber = 저스틴비버
+ed sheeran = 에드시런
+billie eilish = 빌리아일리시
+adele = 아델
+frank ocean = 프랭크오션
+tyler the creator = 타일러더크리에이터
+asap rocky = 에이셉라키
+playboi carti = 플레이보이카티
+lil uzi = 릴우지
+juice wrld = 주스월드
+pop smoke = 팝스모크
+gunna = 거나
+lil baby = 릴베이비
+rick ross = 릭로스
+wiz khalifa = 위즈칼리파
+mac miller = 맥밀러
+childish gambino = 차일디쉬감비노
+outkast = 아웃캐스트
+wu tang = 우탱
+method man = 메소드맨
+run dmc = 런디엠씨
+beastie boys = 비스티보이즈
+missy elliott = 미시엘리엇
+lauryn hill = 로린힐
+busta rhymes = 버스타라임즈
+ludacris = 루다크리스
+nelly = 넬리
+t pain = 티페인
+akon = 에이콘
+usher = 어셔
+chris brown = 크리스브라운
+kid cudi = 키드커디
+bad bunny = 배드버니
+daddy yankee = 대디양키
+bob marley = 밥말리
+elvis = 엘비스
+beatles = 비틀즈
+nirvana = 너바나
+metallica = 메탈리카
+coldplay = 콜드플레이
+oasis = 오아시스
+daft punk = 다프트펑크
+skrillex = 스크릴렉스
+marshmello = 마시멜로
+avicii = 아비치
+calvin harris = 캘빈해리스
+dua lipa = 두아리파
+sza = 시자
+lizzo = 리조
+megan thee stallion = 메건디스탤리언
+
+@국내 아티스트
+지코
+빈지노
+도끼
+더콰이엇
+다이나믹듀오
+개코
+최자
+타블로
+에픽하이
+박재범
+송민호
+비와이
+창모
+키드밀리
+식케이
+저스디스
+우원재
+염따
+쌈디
+그레이
+로꼬
+기리보이
+스윙스
+이센스
+팔로알토
+넉살
+딥플로우
+버벌진트
+가리온
+드렁큰타이거
+타이거제이케이
+윤미래
+리쌍
+개리
+산이
+매드클라운
+나플라
+루피
+오왼
+해쉬스완
+김하온
+이영지
+릴보이
+머쉬베놈
+빅나티
+애쉬아일랜드
+사이먼도미닉
+크러쉬
+딘
+자이언티
+헤이즈
+그루비룸
+코드쿤스트
+행주
+보이비
+제네더질라
+수퍼비
+영비
+노엘
+쿤디판다
+던밀스
+방탄소년단
+블랙핑크
+빅뱅
+지드래곤
+태양
+아이유
+뉴진스
+에스파
+세븐틴
+트와이스
+엑소
+소녀시대
+싸이
+서태지
+이효리
+보아
+아이브
+르세라핌
+스트레이키즈
+레드벨벳
+마마무
+제니
+리사
+로제
+지수
+정국
+지민
+슈가
+제이홉
+장원영
+카리나
+
+@스포츠
+손흥민
+박지성
+김연아
+류현진
+이강인
+김민재
+황희찬
+차범근
+박찬호
+이승엽
+이대호
+추신수
+오타니
+메시
+호날두
+네이마르
+음바페
+홀란드
+베컴
+앙리
+지단
+펠레
+마라도나
+호나우지뉴
+즐라탄
+마이클 조던
+르브론
+코비
+스테판 커리
+샤킬 오닐
+타이거 우즈
+페더러
+나달
+우사인 볼트
+타이슨
+무하마드 알리
+메이웨더
+파퀴아오
+맥그리거
+이소룡
+성룡
+페이커
+레알 마드리드
+맨유
+리버풀
+바르샤
+토트넘
+레이커스
+양키스
+다저스
+
+@영화·캐릭터
+배트맨
+조커
+아이언맨
+스파이더맨
+슈퍼맨
+헐크
+토르
+타노스
+캡틴 아메리카
+블랙팬서
+데드풀
+울버린
+해리포터
+볼드모트
+간달프
+골룸
+다스베이더
+요다
+제다이
+터미네이터
+람보
+록키
+대부
+스카페이스
+토니 몬타나
+매트릭스
+모피어스
+제임스 본드
+셜록 홈즈
+피터팬
+신데렐라
+백설공주
+알라딘
+라푼젤
+엘사
+심바
+미키마우스
+도널드 덕
+스누피
+짱구
+도라에몽
+피카츄
+손오공
+베지터
+나루토
+조로
+에반게리온
+건담
+마리오
+루이지
+소닉
+젤다
+마인크래프트
+포트나이트
+배틀그라운드
+스타크래프트
+테트리스
+팩맨
+뽀로로
+타짜
+올드보이
+기생충
+오징어게임
+
+@역사·신화·예술
+제우스
+포세이돈
+하데스
+아폴로
+아테나
+헤라클레스
+아킬레스
+오디세우스
+메두사
+판도라
+프로메테우스
+이카루스
+나르시스
+비너스
+큐피드
+오딘
+로키
+발할라
+아누비스
+클레오파트라
+파라오
+투탕카멘
+카이사르
+나폴레옹
+알렉산더
+칭기즈칸
+이순신
+세종대왕
+광개토대왕
+유관순
+안중근
+단군
+홍길동
+춘향
+심청
+흥부
+놀부
+삼장법사
+조조
+유비
+관우
+장비
+제갈량
+여포
+모차르트
+베토벤
+바흐
+쇼팽
+피카소
+반 고흐
+다빈치
+모나리자
+미켈란젤로
+아인슈타인
+뉴턴
+에디슨
+셰익스피어
+햄릿
+로미오
+줄리엣
+돈키호테
+카프카
+니체
+소크라테스
+링컨
+간디
+만델라
+마틴 루터 킹
+체 게바라
+스티브 잡스
+일론 머스크
+빌 게이츠
+저커버그
+워런 버핏

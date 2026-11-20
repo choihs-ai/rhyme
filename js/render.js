@@ -278,12 +278,12 @@ export function renderRecommend(el, res) {
     const SHOW = 24;
     h += `<div class="rec-group"><h4>${g.len}음절 · ${g.items.length}${g.more ? '+' : ''}개</h4><div class="words">`;
     g.items.forEach((it, k) => {
-      h += `<button type="button" class="word${it.lang === 'en' ? ' en' : ''}${it.score >= 0.97 ? ' hi' : ''}${k >= SHOW ? ' extra' : ''}" data-word="${esc(it.w)}" title="유사도 ${Math.round(it.score * 100)}%">${esc(it.w)}${it.lang === 'en' ? ` <span class="pr">${esc(it.pron)}</span>` : ''}<small>${Math.round(it.score * 100)}</small></button>`;
+      h += `<button type="button" class="word${it.lang === 'en' ? ' en' : ''}${it.cat ? ' nm' : ''}${it.score >= 0.97 ? ' hi' : ''}${k >= SHOW ? ' extra' : ''}" data-word="${esc(it.w)}" title="${it.cat ? esc(it.cat) + ' · ' : ''}유사도 ${Math.round(it.score * 100)}%">${esc(it.w)}${it.lang === 'en' ? ` <span class="pr">${esc(it.pron)}</span>` : ''}<small>${Math.round(it.score * 100)}</small></button>`;
     });
     h += '</div>';
     if (g.items.length > SHOW) h += `<button type="button" class="link more-btn" data-more>${g.items.length - SHOW}개 더 보기</button>`;
     h += '</div>';
   }
-  h += '<p class="note">숫자 = 유사도(%). 단어 끝 음절들이 입력의 모음 패턴과 맞는 정도이며, 같은 유사도에서는 자주 쓰는 단어가 먼저 나옵니다. 점선 테두리 = 영어. 단어를 누르면 복사됩니다.</p>';
+  h += '<p class="note">숫자 = 유사도(%). 단어 끝 음절들이 입력의 모음 패턴과 맞는 정도이며, 같은 유사도에서는 자주 쓰는 단어가 먼저 나옵니다. 점선 테두리 = 영어, 옅은 바탕 = 이름·브랜드. 단어를 누르면 복사됩니다.</p>';
   el.innerHTML = h;
 }

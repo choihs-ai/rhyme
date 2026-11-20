@@ -292,6 +292,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 }
 .word small { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .word.en { border-style: dashed; }
+.word.nm { background: var(--accent-soft); }
 .word .pr { font-size: 11px; color: var(--text-muted); }
 .word.hi { border-color: var(--accent); }
 .words .word.extra { display: none; }

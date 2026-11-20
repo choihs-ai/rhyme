@@ -9,8 +9,9 @@
 //   en-ok.txt     : (선택) 추천에 내보내도 되는 영어 단어 목록. 맞춤법 사전이 소문자로 받아 주는 단어만 넣어 인명·지명을 거른다
 //                   grep -v "'" wf-en.txt | hunspell -d en_US -G > en-ok.txt
 //   tools/data-src/en-rap.txt : 직접 작성한 랩 영어 발음 예외 사전
+//   tools/data-src/names.txt : 직접 작성한 이름·브랜드 목록 (추천의 '이름·브랜드' 스위치용)
 // 출력
-//   data/en-words.json, data/ko-words.json
+//   data/en-words.json, data/ko-words.json, data/names.json
 //
 // 색인 키 = 단어의 실제 발음 음절에서 초성을 ㅇ으로 바꾼 "운(rime)" 문자열.
 //   예) 머니 → "어이", 갈망 → "알앙", 없어[업써] → "업어"
@@ -86,8 +87,13 @@ function buildEnglish() {
     if (!dict.has(w)) dict.set(w, arpabetToHangul(ph, w));
     if (common.length < EN_REC_SIZE && w.length >= 3 && !w.includes("'") && (!EN_REC_OK || EN_REC_OK.has(w))) common.push(w);
   }
+  // 3) 이름·브랜드 중 한 낱말짜리 영어 이름(balenciaga)은 가사 분석에서도 읽을 수 있게 발음 사전에 넣는다.
+  //    이미 있는 단어(apple)는 그대로 둔다.
+  for (const n of readNames()) {
+    if (n.lang === 'en' && !n.w.includes(' ') && !dict.has(n.w)) dict.set(n.w, markEp(n.pron));
+  }
   setEnglishDictionary(dict);
-  // 3) 추천용 색인: 랩 단어 + 흔한 단어
+  // 4) 추천용 색인: 랩 단어 + 흔한 단어
   const STOP = new Set('the and for are but not you all any can had her was one our out has him his how its may new now old see two way who did get let put say she too use that with have this will your from they know want been good much some time very when come here just like long make many more only over such take than them well were what into then there these would could should their about which while where being other after those still might since under again never'.split(' '));
   const pool = [];
   const seen = new Set();
@@ -103,7 +109,7 @@ function buildEnglish() {
     const k = rimeKey(syl);
     (idx[k] = idx[k] || []).push(w);
   }
-  // 4) 영어 운 꼬리(rhyme tail): 마지막 강세 모음부터 끝까지의 음소. 영어 단어끼리의 라임 판정에 쓴다.
+  // 5) 영어 운 꼬리(rhyme tail): 마지막 강세 모음부터 끝까지의 음소. 영어 단어끼리의 라임 판정에 쓴다.
   //    한글 표기가 달라도(real=리얼, feel=필) 꼬리가 같으면(IY.L) 라임이고, 꼬리의 모음이 다르면 한글 표기가 닮아도 라임이 아니다.
   const byTail = new Map();
   for (const w of dict.keys()) {
@@ -160,10 +166,58 @@ function buildKorean() {
   console.log(`ko-words.json: words ${n}, keys ${Object.keys(idx).length}`);
 }
 
+// ───────── 이름·브랜드 ─────────
+function readNames() {
+  const out = [];
+  let cat = '';
+  for (const raw of fs.readFileSync(path.join(ROOT, 'tools/data-src/names.txt'), 'utf8').split('\n')) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+    if (line.startsWith('@')) { cat = line.slice(1).trim(); continue; }
+    const [w, pron] = line.split('=').map(x => x.trim());
+    if (/^[가-힣 ]+$/.test(w)) out.push({ w, pron: w.replace(/ /g, ''), lang: 'ko', cat });
+    else if (pron && /^[가-힣' ]+$/.test(pron)) out.push({ w: w.toLowerCase(), pron: pron.replace(/ /g, ''), lang: 'en', cat });
+    else throw new Error(`names.txt: 영어 이름에는 '= 한글 발음'이 필요합니다: ${line}`);
+  }
+  return out;
+}
+
+// 일반 추천 사전에 이미 있는 낱말은 빼고(같은 단어가 두 번 나오지 않게), 발음 운으로 색인한다
+function buildNames() {
+  const listed = new Set();
+  for (const f of ['ko-words.json', 'en-words.json']) {
+    const j = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', f), 'utf8'));
+    for (const v of Object.values(j.idx)) for (const w of v.replace('|', ' ').split(' ')) listed.add(w);
+  }
+  const idx = {};
+  let n = 0, skipped = 0;
+  const seen = new Set();
+  for (const it of readNames()) {
+    if (seen.has(it.w)) continue;
+    seen.add(it.w);
+    if (listed.has(it.w)) { skipped++; continue; }
+    const syl = analyzePronunciation(it.pron.replace(/'/g, '')).syllables;
+    if (!syl.length) continue;
+    const k = rimeKey(syl);
+    (idx[k] = idx[k] || []).push(it.lang === 'en' ? [it.w, it.cat, it.pron.replace(/'/g, '')] : [it.w, it.cat]);
+    n++;
+  }
+  const out = {
+    v: 1,
+    note: 'names: 이름·브랜드 추천 색인. idx 키 = 발음 운(초성→ㅇ), 값 = [이름, 분류] (영어 이름은 [이름, 분류, 한글 발음]).',
+    sources: ['tools/data-src/names.txt (직접 작성)'],
+    count: n,
+    idx,
+  };
+  fs.writeFileSync(path.join(ROOT, 'data/names.json'), JSON.stringify(out));
+  console.log(`names.json: names ${n} (일반 사전과 겹쳐 뺀 것 ${skipped})`);
+}
+
 fs.mkdirSync(path.join(ROOT, 'data'), { recursive: true });
 if (args.cmu && args['en-freq']) buildEnglish();
 if (args['ko-list']) buildKorean();
-for (const f of ['en-words.json', 'ko-words.json']) {
+buildNames();
+for (const f of ['en-words.json', 'ko-words.json', 'names.json']) {
   const p = path.join(ROOT, 'data', f);
   if (fs.existsSync(p)) console.log(`${f}: ${(fs.statSync(p).size / 1024).toFixed(0)} KB`);
 }

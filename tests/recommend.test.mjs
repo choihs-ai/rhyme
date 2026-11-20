@@ -6,8 +6,9 @@ import { loadEnglishData } from '../js/pronounce.js';
 import { setDictionaries, recommend } from '../js/recommend.js';
 const en = JSON.parse(fs.readFileSync(new URL('../data/en-words.json', import.meta.url)));
 const ko = JSON.parse(fs.readFileSync(new URL('../data/ko-words.json', import.meta.url)));
+const names = JSON.parse(fs.readFileSync(new URL('../data/names.json', import.meta.url)));
 loadEnglishData(en);
-setDictionaries(ko, en);
+setDictionaries(ko, en, names);
 
 // 검색어 → 추천에 꼭 들어 있어야 하는 단어
 const EXPECT = {
@@ -31,6 +32,16 @@ for (const q of args.length ? args : Object.keys(EXPECT)) {
     const ok = words.has(w);
     console.log(`${ok ? '✓' : '✗'} ${q} 추천에 ${w}`);
     if (!ok) fail++;
+  }
+}
+
+// 이름·브랜드는 스위치를 켰을 때만 섞인다
+if (!args.length) {
+  const words = (q, opt) => new Set(recommend(q, { limit: 14, ...opt }).groups.flatMap(g => g.items.map(i => i.w)));
+  for (const [q, name] of [['flow', '타블로'], ['love', '비너스'], ['돈', '신촌'], ['강남', '한남']]) {
+    const on = words(q, { names: true }).has(name), off = !words(q).has(name);
+    console.log(`${on && off ? '✓' : '✗'} ${q} 추천: 이름·브랜드를 켜면 ${name}, 끄면 없음`);
+    if (!(on && off)) fail++;
   }
 }
 if (fail) process.exitCode = 1;

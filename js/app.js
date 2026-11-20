@@ -10,7 +10,7 @@ import { esc } from './ui/highlight.js';
 import { encodeShare, decodeShare, shareCodeFromHash, appBaseUrl } from './share.js';
 import { setDictionaries, recommend, dictionaryCounts } from './recommend.js';
 
-export const VERSION = 'v1.5.0';
+export const VERSION = 'v1.6.0';
 
 const SAMPLE = `너의 money 내 머니 다 같은 소리
 밤새 달려 갈망한 날 봐 이제 팔자
@@ -38,7 +38,7 @@ const state = {
   debug: storage.get('debug', true),
   exclude: new Set(storage.get('exclude', [])),
   pron: null, rhyme: null, focus: -1, tab: 'hl',
-  rec: { lang: 'all', coda: false, last: null },
+  rec: { lang: 'all', coda: false, names: false, last: null },
   demo: false, sharedText: null, lastText: '',
 };
 
@@ -118,8 +118,10 @@ async function loadDictionaries() {
       fetch('data/en-words.json').then(r => { if (!r.ok) throw new Error('en ' + r.status); return r.json(); }),
       fetch('data/ko-words.json').then(r => { if (!r.ok) throw new Error('ko ' + r.status); return r.json(); }),
     ]);
+    // 이름·브랜드 목록은 추천의 덤이라, 못 받아도 나머지는 그대로 쓴다
+    const names = await fetch('data/names.json').then(r => (r.ok ? r.json() : null)).catch(() => null);
     loadEnglishData(en);
-    setDictionaries(ko, en);
+    setDictionaries(ko, en, names);
     setLexicon(lexiconFromKo(ko));
     const c = dictionaryCounts();
     status.textContent = `사전 한국어 ${ko.count.toLocaleString()} · 영어 ${en.count.toLocaleString()}(랩 ${en.rapCount.toLocaleString()})`;
@@ -322,6 +324,7 @@ function bindEvents() {
     if (state.rec.last) runRecommend();
   });
   $('#rec-coda').addEventListener('change', e => { state.rec.coda = e.target.checked; if (state.rec.last) runRecommend(); });
+  $('#rec-names').addEventListener('change', e => { state.rec.names = e.target.checked; if (state.rec.last) runRecommend(); });
   $('#rec-out').addEventListener('click', e => {
     const more = e.target.closest('[data-more]');
     if (more) { more.previousElementSibling.classList.add('open'); more.remove(); return; }
@@ -437,7 +440,7 @@ async function runRecommend() {
   await dictReady;
   state.rec.last = q;
   const t0 = performance.now();
-  const res = recommend(q, { lang: state.rec.lang, coda: state.rec.coda, overrides: state.overrides });
+  const res = recommend(q, { lang: state.rec.lang, coda: state.rec.coda, names: state.rec.names, overrides: state.overrides });
   if (state.debug && res && !res.error) console.info(`[추천] ${q} → [${res.pron}] ${res.pattern} · ${res.groups.reduce((a, g) => a + g.items.length, 0)}개 · ${(performance.now() - t0).toFixed(0)}ms`);
   renderRecommend($('#rec-out'), res);
 }

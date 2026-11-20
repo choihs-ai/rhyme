@@ -1,8 +1,8 @@
 // 라임 스캐너 — 서비스 워커 (홈 화면 앱 + 오프라인)
 // 배포할 때마다 VERSION 을 올리면(js/app.js 의 VERSION 과 같게) 새 캐시로 교체된다.
 // 사전 JSON 은 DATA_VERSION 이 바뀔 때만 다시 받는다.
-const VERSION = 'v1.5.0';
-const DATA_VERSION = 'd3';
+const VERSION = 'v1.6.0';
+const DATA_VERSION = 'd4';
 const APP_CACHE = `rhyme-app-${VERSION}`;
 const DATA_CACHE = `rhyme-data-${DATA_VERSION}`;
 const PAGE_CACHE = 'rhyme-pages';
@@ -16,7 +16,7 @@ const APP_FILES = [
   'js/ui/dom.js', 'js/ui/highlight.js', 'js/ui/image.js',
   'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png',
 ];
-const DATA_FILES = ['data/ko-words.json', 'data/en-words.json'];
+const DATA_FILES = ['data/ko-words.json', 'data/en-words.json', 'data/names.json'];
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {

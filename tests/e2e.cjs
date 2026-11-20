@@ -85,6 +85,12 @@ function serveRepo() {
   const recWords = await page.$$eval('#rec-out .word', els => els.map(e => e.dataset.word));
   console.log('rec first:', recWords.slice(0, 8));
   check('추천: 머니 → honey', recWords.includes('honey'));
+  await page.check('#rec-names', { force: true });
+  await page.fill('#rec-input', 'flow');
+  await page.click('#rec-form button[type=submit]');
+  await page.waitForSelector('#rec-out .word.nm', { timeout: 5000 }).catch(() => null);
+  const named = await page.$$eval('#rec-out .word.nm', els => els.map(e => e.dataset.word));
+  check('추천: 이름·브랜드 켜면 flow → 타블로', named.includes('타블로'));
   // 이미지·JSON 내보내기
   await page.click('#tab-hl');
   const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 8000 }).catch(() => null), page.click('#btn-image')]);

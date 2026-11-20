@@ -7,18 +7,30 @@ import { vowelSim, codaSim } from './rhyme.js';
 let ENTRIES = [];
 let counts = { ko: 0, en: 0 };
 
-export function setDictionaries(koJson, enJson) {
+const unitsOf = key => {
+  const units = [];
+  for (const ch of key) { const d = decompose(ch); if (d) units.push(d); }
+  return units;
+};
+
+/**
+ * @param namesJson data/names.json (없어도 된다). 이름·브랜드는 recommend 의 names 옵션을 켰을 때만 섞인다.
+ */
+export function setDictionaries(koJson, enJson, namesJson) {
   ENTRIES = [];
   const add = (json, lang) => {
     if (!json || !json.idx) return;
-    for (const key in json.idx) {
-      const units = [];
-      for (const ch of key) { const d = decompose(ch); if (d) units.push(d); }
-      ENTRIES.push({ key, units, lang, raw: json.idx[key] });
-    }
+    for (const key in json.idx) ENTRIES.push({ key, units: unitsOf(key), lang, raw: json.idx[key] });
   };
   add(koJson, 'ko');
   add(enJson, 'en');
+  // 이름은 단어마다 분류·발음이 붙어 있어서 미리 펼쳐 둔다. 한 키에 한국어·영어 이름이 섞이면 언어별로 나눈다.
+  for (const key in (namesJson && namesJson.idx) || {}) {
+    for (const lang of ['ko', 'en']) {
+      const names = namesJson.idx[key].filter(x => (x.length === 3 ? 'en' : 'ko') === lang).map(([w, cat, pron]) => ({ w, cat, pron: pron || '' }));
+      if (names.length) ENTRIES.push({ key, units: unitsOf(key), lang, names });
+    }
+  }
   counts = { ko: koJson ? koJson.count : 0, en: enJson ? (enJson.rap || '').split(' ').length : 0 };
   return ENTRIES.length;
 }
@@ -26,10 +38,11 @@ export const dictionaryCounts = () => counts;
 
 /**
  * @param {string} query
- * @param {{lang?: 'all'|'ko'|'en', coda?: boolean, limit?: number, overrides?: Map}} opt
+ * @param {{lang?: 'all'|'ko'|'en', coda?: boolean, names?: boolean, limit?: number, overrides?: Map}} opt
+ *   names = 이름·브랜드(구찌, 손흥민, 강남)도 섞는다
  */
 export function recommend(query, opt = {}) {
-  const { lang = 'all', coda = false, limit = 60, overrides } = opt;
+  const { lang = 'all', coda = false, names = false, limit = 60, overrides } = opt;
   const q = query.trim();
   if (!q) return null;
   const pron = analyzePronunciation(q, { overrides });
@@ -42,6 +55,7 @@ export function recommend(query, opt = {}) {
   const scored = [];
   for (const e of ENTRIES) {
     if (lang !== 'all' && e.lang !== lang) continue;
+    if (e.names && !names) continue;
     const m = e.units.length;
     if (m < Math.max(1, n - 1)) continue;          // 한 음절까지 짧은 것 허용
     const k = Math.min(n, m);
@@ -81,19 +95,25 @@ export function recommend(query, opt = {}) {
       const sc = Math.round(list[i].score * 100);
       while (j < list.length && Math.round(list[j].score * 100) === sc) j++;
       const bucket = list.slice(i, j).map(s => {
+        if (s.e.names) return { s, lists: [s.e.names, []] };
         const [t1, t2] = s.e.raw.split('|');
         return { s, lists: [t1 ? t1.split(' ') : [], t2 ? t2.split(' ') : []] };
       });
+      // 이름·브랜드를 켰다면 이름을 보려는 것이므로, 같은 점수대에서는 이름을 먼저 놓는다 (이름은 수가 적어 뒤에 두면 잘린다)
+      bucket.sort((x, y) => !!y.s.e.names - !!x.s.e.names);
       for (const tier of [0, 1]) {
         let depth = 0, added = true;
         while (added && items.length < limit) {
           added = false;
           for (const b of bucket) {
-            const w = b.lists[tier][depth];
-            if (w === undefined) continue;
+            const x = b.lists[tier][depth];
+            if (x === undefined) continue;
             added = true;
+            const name = typeof x === 'object' ? x : null;
+            const w = name ? name.w : x;
             if (w.replace(/\s+/g, '').toLowerCase() === lowerQ) continue;
-            items.push({ w, lang: b.s.e.lang, score: b.s.score, tier, pron: b.s.e.lang === 'en' ? (enDict.get(w) || '').replace(/'/g, '') : '' });
+            const pron = name ? name.pron : b.s.e.lang === 'en' ? (enDict.get(w) || '').replace(/'/g, '') : '';
+            items.push({ w, lang: b.s.e.lang, score: b.s.score, tier, pron, ...(name ? { cat: name.cat } : {}) });
             if (items.length >= limit) break;
           }
           depth++;
