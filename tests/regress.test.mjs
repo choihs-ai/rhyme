@@ -1,11 +1,11 @@
 // 회귀 테스트: 사용자 제보로 고친 판정
 //   node tests/regress.test.mjs
 import fs from 'fs';
-import { loadEnglishData, analyzePronunciation } from '../js/pronounce.js';
-import { analyzeRhymes, setLexicon, lexiconFromKo } from '../js/rhyme.js';
+import { analyzePronunciation } from '../js/pronounce.js';
+import { analyzeRhymes } from '../js/rhyme.js';
+import { loadData } from './data.mjs';
 
-loadEnglishData(JSON.parse(fs.readFileSync(new URL('../data/en-words.json', import.meta.url))));
-setLexicon(lexiconFromKo(JSON.parse(fs.readFileSync(new URL('../data/ko-words.json', import.meta.url)))));
+loadData();
 const run = t => analyzeRhymes(analyzePronunciation(t));
 const texts = g => g.members.filter(m => !m.repeat).map(m => m.text);
 const has = (g, w) => texts(g).some(t => t.includes(w));

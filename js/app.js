@@ -1,16 +1,17 @@
 // 라임 스캐너 — 앱 전체 연결 (화면 상태, 이벤트, 저장, 서비스 워커)
 // 분석은 pronounce.js → rhyme.js, 그리기는 render.js·ui/ 가 맡고 여기서는 그 둘을 잇는다.
-import { analyzePronunciation, loadEnglishData } from './pronounce.js';
-import { analyzeRhymes, describeGroups, DEFAULT_OPTIONS, setLexicon, lexiconFromKo } from './rhyme.js';
+import { analyzePronunciation } from './pronounce.js';
+import { analyzeRhymes, describeGroups, DEFAULT_OPTIONS } from './rhyme.js';
 import { renderHighlight, renderScore, renderStructure, renderRecommend, syllableSheet, groupInfoHtml } from './render.js';
 import { drawImage, drawScoreCard } from './ui/image.js';
 import { buildTextSummary, buildExport } from './export.js';
 import { $, storage, toast, openSheet, closeSheet, copyText, shareOrDownload, stamp } from './ui/dom.js';
 import { esc } from './ui/highlight.js';
 import { encodeShare, decodeShare, shareCodeFromHash, appBaseUrl } from './share.js';
-import { setDictionaries, recommend, dictionaryCounts } from './recommend.js';
+import { recommend, dictionaryCounts } from './recommend.js';
+import { applyCore, applyRest } from './data.js';
 
-export const VERSION = 'v1.6.0';
+export const VERSION = 'v1.7.0';
 
 const SAMPLE = `너의 money 내 머니 다 같은 소리
 밤새 달려 갈망한 날 봐 이제 팔자
@@ -42,7 +43,10 @@ const state = {
   demo: false, sharedText: null, lastText: '',
 };
 
+// dictReady: 가사 분석에 필요한 사전(core.json). recReady: 추천 색인과 영어 발음 사전 나머지.
+// 느린 회선에서도 첫 분석이 빨리 뜨도록 core 만 먼저 받고, 나머지는 그 뒤에 받는다.
 let dictReady = null;
+let recReady = null;
 
 // ───────────────────────── 시작 ─────────────────────────
 function init() {
@@ -52,7 +56,8 @@ function init() {
   updateCount();
   applyOptionsToUi();
   bindEvents();
-  dictReady = loadDictionaries();
+  dictReady = loadCore();
+  recReady = dictReady.then(loadRest);
   registerSW();
   const lastVer = storage.get('lastVersion', null);
   if (lastVer && lastVer !== VERSION) setTimeout(() => toast(`${VERSION}(으)로 업데이트되었습니다`), 600);
@@ -111,24 +116,35 @@ function startMine() {
   ta.focus({ preventScroll: true });
 }
 
-async function loadDictionaries() {
+const getJson = f => fetch(f).then(r => { if (!r.ok) throw new Error(`${f} ${r.status}`); return r.json(); });
+
+async function loadCore() {
   const status = $('#dict-status');
   try {
-    const [en, ko] = await Promise.all([
-      fetch('data/en-words.json').then(r => { if (!r.ok) throw new Error('en ' + r.status); return r.json(); }),
-      fetch('data/ko-words.json').then(r => { if (!r.ok) throw new Error('ko ' + r.status); return r.json(); }),
-    ]);
+    applyCore(await getJson('data/core.json'));
+    status.textContent = '사전 준비 중 (추천 단어 받는 중)';
+  } catch (e) {
+    console.error(e);
+    status.textContent = '사전을 불러오지 못했습니다. 영어는 규칙으로 읽습니다';
+  }
+}
+
+async function loadRest() {
+  const status = $('#dict-status');
+  try {
+    const [en, ko] = await Promise.all([getJson('data/en-words.json'), getJson('data/ko-words.json')]);
     // 이름·브랜드 목록은 추천의 덤이라, 못 받아도 나머지는 그대로 쓴다
-    const names = await fetch('data/names.json').then(r => (r.ok ? r.json() : null)).catch(() => null);
-    loadEnglishData(en);
-    setDictionaries(ko, en, names);
-    setLexicon(lexiconFromKo(ko));
+    const names = await getJson('data/names.json').catch(() => null);
+    applyRest(en, ko, names);
     const c = dictionaryCounts();
     status.textContent = `사전 한국어 ${ko.count.toLocaleString()} · 영어 ${en.count.toLocaleString()}(랩 ${en.rapCount.toLocaleString()})`;
     if (state.debug) console.info(`[라임 스캐너 ${VERSION}] 사전 로드: 한국어 ${ko.count}, 영어 발음 ${en.count}, 추천 색인 ${c.ko}+${c.en}`);
+    // 먼저 받은 사전에 없던 영어 단어가 가사에 있었다면, 다 받은 사전으로 조용히 다시 분석한다
+    const guessed = p => p.type === 'en' && !/^(dict|user|letters)/.test(p.how || '');
+    if (state.pron && state.pron.words.some(w => (w.parts || []).some(guessed))) analyze({ quiet: true, demo: state.demo });
   } catch (e) {
     console.error(e);
-    status.textContent = '사전을 불러오지 못했습니다 — 영어는 규칙 기반으로 변환합니다';
+    if (!/사전을 불러오지/.test(status.textContent)) status.textContent = '추천 사전을 불러오지 못했습니다. 분석은 그대로 됩니다';
   }
 }
 
@@ -443,7 +459,8 @@ function saveRec() { const { lang, coda, names } = state.rec; storage.set('rec',
 async function runRecommend() {
   const q = $('#rec-input').value.trim();
   if (!q) { toast('단어를 입력하세요'); return; }
-  await dictReady;
+  if (!dictionaryCounts().ko) $('#rec-out').innerHTML = '<div class="empty">추천 사전을 받는 중입니다…</div>';
+  await recReady;
   state.rec.last = q;
   const t0 = performance.now();
   const res = recommend(q, { lang: state.rec.lang, coda: state.rec.coda, names: state.rec.names, overrides: state.overrides });
@@ -600,7 +617,7 @@ function registerSW() {
     if (e.data && e.data.type === 'cached') st.textContent = '· 오프라인 사용 가능';
   });
   window.addEventListener('load', () => {
-    dictReady.finally(() => {
+    recReady.finally(() => {
       navigator.serviceWorker.register('sw.js').then(reg => {
         if (navigator.serviceWorker.controller) st.textContent = '· 오프라인 사용 가능';
         else st.textContent = '· 오프라인 준비 중…';

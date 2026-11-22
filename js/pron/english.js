@@ -304,16 +304,17 @@ export function setEnglishDictionary(obj) {
   EN_DICT = obj instanceof Map ? obj : new Map(Object.entries(obj));
 }
 export function getEnglishDictionary() { return EN_DICT; }
-// data/en-words.json 을 받아 사전으로 등록
-export function loadEnglishData(json) {
-  const m = new Map();
-  for (const line of json.dict.split('\n')) {
+// 영어 발음 사전 JSON(data/core.json 의 en, data/en-words.json)을 등록한다.
+// merge = true 면 이미 등록한 사전에 보탠다 (core 를 먼저 받고 나머지를 나중에 받을 때)
+export function loadEnglishData(json, { merge = false } = {}) {
+  const m = merge ? EN_DICT : new Map();
+  for (const line of (json.dict || '').split('\n')) {
     const t = line.indexOf('\t');
     if (t > 0) m.set(line.slice(0, t), line.slice(t + 1));
   }
   setEnglishDictionary(m);
   // 영어 운 꼬리: { "IY.L": "real feel deal", ... } → 단어 → 꼬리
-  EN_TAILS = new Map();
+  if (!merge) EN_TAILS = new Map();
   for (const tail in json.tails || {}) for (const w of json.tails[tail].split(' ')) EN_TAILS.set(w, tail);
   return m.size;
 }

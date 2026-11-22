@@ -1,14 +1,9 @@
 // 라임 단어 추천 테스트
 //   node tests/recommend.test.mjs              정해 둔 검색어로 확인
 //   node tests/recommend.test.mjs 머니 flow    검색어를 주면 결과만 출력
-import fs from 'fs';
-import { loadEnglishData } from '../js/pronounce.js';
-import { setDictionaries, recommend } from '../js/recommend.js';
-const en = JSON.parse(fs.readFileSync(new URL('../data/en-words.json', import.meta.url)));
-const ko = JSON.parse(fs.readFileSync(new URL('../data/ko-words.json', import.meta.url)));
-const names = JSON.parse(fs.readFileSync(new URL('../data/names.json', import.meta.url)));
-loadEnglishData(en);
-setDictionaries(ko, en, names);
+import { recommend } from '../js/recommend.js';
+import { loadData } from './data.mjs';
+loadData();
 
 // 검색어 → 추천에 꼭 들어 있어야 하는 단어
 const EXPECT = {

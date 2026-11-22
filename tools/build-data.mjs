@@ -11,7 +11,12 @@
 //   tools/data-src/en-rap.txt : 직접 작성한 랩 영어 발음 예외 사전
 //   tools/data-src/names.txt : 직접 작성한 이름·브랜드 목록 (추천의 '이름·브랜드' 스위치용)
 // 출력
-//   data/en-words.json, data/ko-words.json, data/names.json
+//   data/core.json      가사 분석에 꼭 필요한 것만: 영어 발음 사전 앞쪽(랩 예외 + 빈도 상위 --en-core 단어 + 이름)과
+//                       그 운 꼬리, 한국어 기본어 목록. 앱이 가장 먼저 받는다.
+//   data/en-words.json  영어 발음 사전 나머지와 운 꼬리, 영어 추천 색인. 첫 화면이 뜬 뒤에 받는다.
+//   data/ko-words.json  한국어 추천 색인
+//   data/names.json     이름·브랜드 추천 색인
+//   core.json 은 영어·한국어를 모두 빌드할 때만 만든다.
 //
 // 색인 키 = 단어의 실제 발음 음절에서 초성을 ㅇ으로 바꾼 "운(rime)" 문자열.
 //   예) 머니 → "어이", 갈망 → "알앙", 없어[업써] → "업어"
@@ -25,6 +30,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = Object.fromEntries(process.argv.slice(2).reduce((acc, a, i, arr) => (a.startsWith('--') ? acc.concat([[a.slice(2), arr[i + 1]]]) : acc), []));
 const EN_DICT_SIZE = +(args['en-size'] || 50000);   // 발음 사전에 넣을 단어 수 (빈도순)
 const EN_REC_SIZE = +(args['en-rec'] || 20000);     // 그중 추천에 내보낼 단어 수
+const EN_CORE_SIZE = +(args['en-core'] || 20000);  // 그중 core.json 에 넣어 먼저 받을 단어 수 (가사에 나올 만한 단어)
 const EN_REC_OK = args['en-rec-ok'] ? new Set(fs.readFileSync(args['en-rec-ok'], 'utf8').split('\n').map(s => s.trim()).filter(Boolean)) : null;
 
 export function rimeKey(syls) {
@@ -77,6 +83,7 @@ function buildEnglish() {
   // 2) 빈도 상위 단어 (CMU 발음 → 한글)
   const freq = fs.readFileSync(args['en-freq'], 'utf8').split('\n').map(s => s.trim()).filter(Boolean);
   const common = [];
+  const core = new Set(dict.keys());   // 랩 예외 사전은 모두 먼저 받는다
   for (const w of freq) {
     if (dict.size >= EN_DICT_SIZE) break;
     if (!/^[a-z][a-z']*$/.test(w) || (w.length < 2 && w !== 'a' && w !== 'i')) continue;
@@ -85,12 +92,13 @@ function buildEnglish() {
     const ph = cmu.get(w);
     if (!ph) continue;
     if (!dict.has(w)) dict.set(w, arpabetToHangul(ph, w));
+    if (dict.size <= EN_CORE_SIZE) core.add(w);
     if (common.length < EN_REC_SIZE && w.length >= 3 && !w.includes("'") && (!EN_REC_OK || EN_REC_OK.has(w))) common.push(w);
   }
   // 3) 이름·브랜드 중 한 낱말짜리 영어 이름(balenciaga)은 가사 분석에서도 읽을 수 있게 발음 사전에 넣는다.
   //    이미 있는 단어(apple)는 그대로 둔다.
   for (const n of readNames()) {
-    if (n.lang === 'en' && !n.w.includes(' ') && !dict.has(n.w)) dict.set(n.w, markEp(n.pron));
+    if (n.lang === 'en' && !n.w.includes(' ') && !dict.has(n.w)) { dict.set(n.w, markEp(n.pron)); core.add(n.w); }
   }
   setEnglishDictionary(dict);
   // 4) 추천용 색인: 랩 단어 + 흔한 단어
@@ -120,23 +128,28 @@ function buildEnglish() {
     if (!byTail.has(t)) byTail.set(t, []);
     byTail.get(t).push(w);
   }
-  const tails = {};
-  for (const [t, ws] of byTail) tails[t] = ws.join(' ');
+  // core 와 나머지로 나눈다
+  const part = inCore => {
+    const tails = {};
+    for (const [t, ws] of byTail) { const sel = ws.filter(w => core.has(w) === inCore); if (sel.length) tails[t] = sel.join(' '); }
+    return { dict: [...dict].filter(([w]) => core.has(w) === inCore).map(([w, p]) => `${w}\t${p}`).join('\n'), tails };
+  };
+  const rest = part(false);
 
   const out = {
-    v: 2,
-    note: 'en-words: 영어 발음 사전 + 랩 단어 추천 색인. dict = "단어\\t한글발음" 줄 목록(\' = 삽입모음). idx 키 = 발음 운(초성→ㅇ). tails = 영어 운 꼬리(음소) → 단어들.',
+    v: 3,
+    note: 'en-words: 영어 발음 사전(core.json 에 없는 나머지) + 랩 단어 추천 색인. dict = "단어\\t한글발음" 줄 목록(\' = 삽입모음). idx 키 = 발음 운(초성→ㅇ). tails = 영어 운 꼬리(음소) → 단어들.',
     sources: ['CMU Pronouncing Dictionary (BSD)', 'wordfreq English frequency list (CC-BY-SA 4.0)', 'tools/data-src/en-rap.txt (직접 작성)'],
     count: dict.size,
     rapCount: rap.length,
-    dict: [...dict].map(([w, p]) => `${w}\t${p}`).join('\n'),
+    dict: rest.dict,
     rap: rap.join(' '),
     idx: Object.fromEntries(Object.entries(idx).map(([k, ws]) => [k, ws.join(' ')])),
-    tails,
+    tails: rest.tails,
   };
   fs.writeFileSync(path.join(ROOT, 'data/en-words.json'), JSON.stringify(out));
-  console.log(`en-words.json: dict ${dict.size}, curated ${rap.length + norec.size} (rap ${rap.length}), rec pool ${pool.length}, keys ${Object.keys(idx).length}`);
-  return dict;
+  console.log(`en-words.json: dict ${dict.size} (core ${core.size}), curated ${rap.length + norec.size} (rap ${rap.length}), rec pool ${pool.length}, keys ${Object.keys(idx).length}`);
+  return { ...part(true), count: dict.size, rapCount: rap.length };
 }
 
 // ───────── 한국어 ─────────
@@ -164,6 +177,10 @@ function buildKorean() {
   };
   fs.writeFileSync(path.join(ROOT, 'data/ko-words.json'), JSON.stringify(out));
   console.log(`ko-words.json: words ${n}, keys ${Object.keys(idx).length}`);
+  // 기본어 목록(활용형 제외): 조사·어미 판정에서 '사전에 실린 낱말'인지 볼 때 쓴다
+  const lex = [];
+  for (const [a] of Object.values(idx)) lex.push(...a);
+  return { lex: lex.join(' '), count: n };
 }
 
 // ───────── 이름·브랜드 ─────────
@@ -214,10 +231,20 @@ function buildNames() {
 }
 
 fs.mkdirSync(path.join(ROOT, 'data'), { recursive: true });
-if (args.cmu && args['en-freq']) buildEnglish();
-if (args['ko-list']) buildKorean();
+const enCore = args.cmu && args['en-freq'] ? buildEnglish() : null;
+const koCore = args['ko-list'] ? buildKorean() : null;
 buildNames();
-for (const f of ['en-words.json', 'ko-words.json', 'names.json']) {
+if (enCore && koCore) {
+  const core = {
+    v: 1,
+    note: 'core: 가사 분석에 필요한 사전. en = en-words.json 과 같은 형식의 앞쪽(빈도 상위) 영어 발음 사전, ko.lex = 한국어 기본어(공백 구분).',
+    sources: ['en-words.json, ko-words.json 과 같음'],
+    en: enCore,
+    ko: koCore,
+  };
+  fs.writeFileSync(path.join(ROOT, 'data/core.json'), JSON.stringify(core));
+}
+for (const f of ['core.json', 'en-words.json', 'ko-words.json', 'names.json']) {
   const p = path.join(ROOT, 'data', f);
   if (fs.existsSync(p)) console.log(`${f}: ${(fs.statSync(p).size / 1024).toFixed(0)} KB`);
 }

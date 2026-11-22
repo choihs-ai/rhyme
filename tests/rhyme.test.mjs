@@ -1,11 +1,11 @@
 // 2단계 검증: 라임 판정
 //   node tests/rhyme.test.mjs ["가사"]
 import fs from 'fs';
-import { loadEnglishData, analyzePronunciation } from '../js/pronounce.js';
-import { analyzeRhymes, describeGroups, setLexicon, lexiconFromKo } from '../js/rhyme.js';
+import { analyzePronunciation } from '../js/pronounce.js';
+import { analyzeRhymes, describeGroups } from '../js/rhyme.js';
+import { loadData } from './data.mjs';
 
-loadEnglishData(JSON.parse(fs.readFileSync(new URL('../data/en-words.json', import.meta.url))));
-setLexicon(lexiconFromKo(JSON.parse(fs.readFileSync(new URL('../data/ko-words.json', import.meta.url)))));
+loadData();
 const TEST = `너의 money 내 머니 다 같은 소리
 밤새 달려 갈망한 날 봐 이제 팔자
 flow 위로 올라 so 높이 날아

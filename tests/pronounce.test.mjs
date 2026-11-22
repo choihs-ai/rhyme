@@ -1,9 +1,9 @@
 // 1단계 검증: 발음 변환기
 //   node tests/pronounce.test.mjs          (테스트 가사 단계별 출력 + 규칙 테스트)
-import fs from 'fs';
-import { loadEnglishData, analyzePronunciation } from '../js/pronounce.js';
+import { analyzePronunciation } from '../js/pronounce.js';
 
-loadEnglishData(JSON.parse(fs.readFileSync(new URL('../data/en-words.json', import.meta.url))));
+import { loadData } from './data.mjs';
+loadData();
 
 export const TEST_LYRICS = `너의 money 내 머니 다 같은 소리
 밤새 달려 갈망한 날 봐 이제 팔자

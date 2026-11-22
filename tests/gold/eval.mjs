@@ -8,10 +8,17 @@ import { CASES } from './cases.mjs';
 export async function loadEngine(root = new URL('../../', import.meta.url)) {
   const P = await import(new URL('js/pronounce.js', root));
   const R = await import(new URL('js/rhyme.js', root));
-  const en = JSON.parse(fs.readFileSync(new URL('data/en-words.json', root)));
-  const ko = JSON.parse(fs.readFileSync(new URL('data/ko-words.json', root)));
-  P.loadEnglishData(en);
-  if (R.setLexicon) R.setLexicon(R.lexiconFromKo(ko));
+  const read = f => JSON.parse(fs.readFileSync(new URL('data/' + f, root)));
+  if (fs.existsSync(new URL('data/core.json', root))) {
+    // v1.7.0 부터: 분석용 core 를 먼저, 나머지 영어 발음 사전을 보탠다
+    const core = read('core.json');
+    P.loadEnglishData(core.en);
+    P.loadEnglishData(read('en-words.json'), { merge: true });
+    R.setLexicon(new Set(core.ko.lex.split(' ')));
+  } else {
+    P.loadEnglishData(read('en-words.json'));
+    if (R.setLexicon) R.setLexicon(R.lexiconFromKo(read('ko-words.json')));
+  }
   return { analyze: (text, opt) => { const pron = P.analyzePronunciation(text); return { pron, rhyme: R.analyzeRhymes(pron, opt) }; }, describe: R.describeGroups };
 }
 

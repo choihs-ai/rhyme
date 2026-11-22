@@ -1,22 +1,22 @@
 // 라임 스캐너 — 서비스 워커 (홈 화면 앱 + 오프라인)
 // 배포할 때마다 VERSION 을 올리면(js/app.js 의 VERSION 과 같게) 새 캐시로 교체된다.
 // 사전 JSON 은 DATA_VERSION 이 바뀔 때만 다시 받는다.
-const VERSION = 'v1.6.0';
-const DATA_VERSION = 'd4';
+const VERSION = 'v1.7.0';
+const DATA_VERSION = 'd5';
 const APP_CACHE = `rhyme-app-${VERSION}`;
 const DATA_CACHE = `rhyme-data-${DATA_VERSION}`;
 const PAGE_CACHE = 'rhyme-pages';
 
 const APP_FILES = [
   './', 'index.html', 'css/style.css', 'css/guide.css',
-  'js/app.js', 'js/share.js', 'js/pronounce.js', 'js/rhyme.js', 'js/render.js', 'js/recommend.js', 'js/export.js',
+  'js/app.js', 'js/data.js', 'js/share.js', 'js/pronounce.js', 'js/rhyme.js', 'js/render.js', 'js/recommend.js', 'js/export.js',
   'js/pron/hangul.js', 'js/pron/numbers.js', 'js/pron/english.js',
   'js/rhyme/similarity.js', 'js/rhyme/endings.js', 'js/rhyme/units.js', 'js/rhyme/candidates.js', 'js/rhyme/groups.js',
   'js/rhyme/result.js', 'js/rhyme/scheme.js', 'js/rhyme/score.js',
   'js/ui/dom.js', 'js/ui/highlight.js', 'js/ui/image.js',
   'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png',
 ];
-const DATA_FILES = ['data/ko-words.json', 'data/en-words.json', 'data/names.json'];
+const DATA_FILES = ['data/core.json', 'data/en-words.json', 'data/ko-words.json', 'data/names.json'];
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
