@@ -31,6 +31,20 @@ export function buildContext(pron, opt, P) {
     };
   });
 
+  // 반복 꼬리 앞도 줄 끝으로 본다: 가까운 줄과 같은 말로 끝나면(지금 간다 아이가 / 다 안다 아이가),
+  // 듣는 사람은 그 말 바로 앞(간다 / 안다)에서 라임을 듣는다. 꼬리 자체는 반복으로 따로 잡힌다.
+  const lastWords = content.map(l => {
+    const ws = l.words.map(i => pron.words[i]).filter(w => w.syl.length);
+    return { l, ws, tail: ws.length ? ws[ws.length - 1].text.toLowerCase() : '' };
+  });
+  lastWords.forEach((x, i) => {
+    if (x.ws.length < 2 || !x.tail) return;
+    const shared = lastWords.some((y, j) => j !== i && Math.abs(j - i) <= 3 && y.l.verse === x.l.verse && y.ws.length >= 2 && y.tail === x.tail);
+    if (!shared) return;
+    const before = x.ws[x.ws.length - 2].syl;
+    for (let k = before.length - 1; k >= 0; k--) if (!before[k].ep) { U[before[k].i].le = true; U[before[k].i].refrainBefore = true; break; }
+  });
+
   // 두 음절의 모음·받침 유사도 (영어 운 꼬리·삽입모음 반영)
   const pairV = (x, y) => {
     if (x.rt && x.rt === y.rt) return 1;            // 영어 단어끼리 운 꼬리가 같음 (real/feel)

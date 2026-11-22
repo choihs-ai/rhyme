@@ -11,7 +11,6 @@ export function collectCandidates(ctx) {
   const exHit = new Set();
   const excluded = (a, L) => { if (!EX.size) return false; const k = spanKey(a, L); if (EX.has(k)) { exHit.add(k); return true; } return false; };
 
-  const oneOpen = i => !U[i].c && U[i].ws && U[i].we && U[i].lang === 'ko';
   const weakVowels = (a, b, L) => { let n = 0; for (let k = 0; k < L; k++) if (pairV(U[a + k], U[b + k]) < 0.85) n++; return n; };
   const cands = [];
   const maxW = Math.max(P.W(opt.maxLen), P.W1end);
@@ -61,8 +60,9 @@ export function collectCandidates(ctx) {
       if (isEnd && m.par > 0 && m.c < 0.6) return null;
       // 줄 안의 1음절: 단어 끝끼리이고 받침이 닮았거나, 같은 어미가 붙은 나란한 꼴(가고/남고)
       if (!isEnd && !(alignEnd && (m.c >= 0.6 || m.par > 0))) return null;
-      // 받침 없는 한 음절 낱말(때, 게, 내)끼리는 줄 안에서 너무 흔히 겹쳐서 라임으로 치지 않는다
-      if (!isEnd && !m.par && oneOpen(ea) && oneOpen(eb)) return null;
+      // 한국어끼리 받침 없는 음절(때/게/내, 밥은/뭇나 의 바/나)은 줄 안에서 너무 흔히 겹쳐서, 같은 어미가 붙은 꼴이 아니면 치지 않는다.
+      //   영어가 끼면(flow / 위로 / so, money / 너의) 일부러 맞춘 소리라 그대로 둔다.
+      if (!isEnd && !m.par && !U[ea].c && !U[eb].c && U[ea].lang === 'ko' && U[eb].lang === 'ko') return null;
     } else {
       if (d > P.W(n)) return null;
       // 줄 끝끼리가 아닌 다음절 라임에 '비슷한 모음'(ㅓ/ㅗ, ㅡ/ㅜ)은 세 음절에 하나까지만.
@@ -96,21 +96,24 @@ export function collectCandidates(ctx) {
   return { cands, excludedKeys: [...exHit] };
 }
 
-// 줄 끝 보호: 줄 끝끼리 이미 라임 상대가 있는 음절을, 한쪽만 줄 끝인 후보(꺼진 방 / 멀기만)가 가로채지 못하게
-// 상대 줄 수만큼 점수를 낮춘다. 듣는 사람에게는 줄 끝 라임이 가장 먼저 들리기 때문.
+// 줄 끝 보호: 줄 끝끼리 이미 라임 상대가 있는 음절을, 줄 끝끼리가 아닌 후보(꺼진 방 / 멀기만, 다 안 / 마라)가
+// 가로채지 못하게 상대 줄 수만큼 점수를 낮춘다. 듣는 사람에게는 줄 끝 라임이 가장 먼저 들리기 때문.
+// 줄 끝 라임 구간에 든 음절은 모두 보호한다 (간다 / 안다 의 '간·안' 까지).
 function protectLineEnds(cands, U) {
   const endPartners = new Map();
   for (const c of cands) {
     if (!c.isEnd || c.repeat) continue;
-    for (const [me, other] of [[c.a + c.L - 1, c.b], [c.b + c.L - 1, c.a]]) {
-      if (!endPartners.has(me)) endPartners.set(me, new Set());
-      endPartners.get(me).add(U[other].n);
+    for (const [me, other] of [[c.a, c.b], [c.b, c.a]]) {
+      for (let k = 0; k < c.L; k++) {
+        if (!endPartners.has(me + k)) endPartners.set(me + k, new Set());
+        endPartners.get(me + k).add(U[other].n);
+      }
     }
   }
   for (const c of cands) {
-    const ea = c.a + c.L - 1, eb = c.b + c.L - 1;
-    if (U[ea].le === U[eb].le) continue;
-    const partners = endPartners.get(U[ea].le ? ea : eb);
-    if (partners) c.score /= 1 + partners.size;
+    if (c.isEnd) continue;
+    let most = 0;
+    for (const start of [c.a, c.b]) for (let k = 0; k < c.L; k++) { const p = endPartners.get(start + k); if (p && p.size > most) most = p.size; }
+    if (most) c.score /= 1 + most;
   }
 }
