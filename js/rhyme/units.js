@@ -2,7 +2,7 @@
 // 발음 음절마다 판정에 필요한 정보(모음·받침·단어/줄 경계·조사 여부)를 붙이고,
 // 음절 쌍·구간 쌍을 비교하는 함수들을 한 묶음(ctx)으로 만들어 뒤 단계에 넘긴다.
 import { VOWEL_SIM, VOWEL_INDEX, codaSim, tailInfo, W_VOWEL, W_CODA } from './similarity.js';
-import { markEndings } from './endings.js';
+import { markEndings, inLexicon } from './endings.js';
 
 export function buildContext(pron, opt, P) {
   const S = pron.syllables;
@@ -83,6 +83,18 @@ export function buildContext(pron, opt, P) {
   const qual = (m, bothLineEnd) => (bothLineEnd ? m.vq : m.sim);
   // 구간이 단어 경계에서 끝나는가: 어절 끝이거나, 단어 첫머리에서 시작해 어간 끝에서 끝남 (갈망|한, 거짓말|은)
   const endsWord = (a, L) => U[a + L - 1].we || (U[a + L - 1].stemEnd && U[a].ws);
+  // 단어 첫머리에서 시작해 단어 중간에서 끝나는 구간이 '합성어의 앞 낱말'로 볼 만한가.
+  //   조이|보이가 ○ (뒤에 두 음절 이상 낱말 '보이'가 이어진다),  발자|국 × (뒤가 '국' 한 음절),  가사|엔 ×
+  //   영어·숫자는 글자와 음절이 딱 맞지 않아서 단어 중간에서 끊지 않는다 (dia|mond, 20|24)
+  const compoundHead = (a, L) => {
+    const e = a + L - 1;
+    if (endsWord(a, L)) return true;
+    if (!U[a].ws || S[e].lang !== 'ko') return false;
+    let rest = '';
+    for (let k = e + 1; k < S.length && S[k].word === S[e].word && S[k].lang === 'ko'; k++) rest += S[k].orth;
+    for (let n = rest.length; n >= 2; n--) if (inLexicon(rest.slice(0, n))) return true;
+    return false;
+  };
   const segKey = (a, L) => { let k = ''; for (let t = 0; t < L; t++) k += U[a + t].key + '|'; return k; };
 
   // 같은 말의 반복인가: 조사·어미를 뺀 글자의 60% 넘게 같으면 라임이 아니라 반복 (인조이라는게/인조이하는게).
@@ -124,5 +136,5 @@ export function buildContext(pron, opt, P) {
   // 구간 식별 키: 줄 내용 + 줄 안 글자 위치. 사용자가 '라임 아님'으로 뺀 구간을 기억하는 데 쓴다 (그 줄을 고치면 자동으로 풀림)
   const spanKey = (a, L) => { const ln = pron.lines[S[a].line]; return `${ln.text.trim()}|${S[a].src[0] - ln.start}|${S[a + L - 1].src[1] - ln.start}`; };
 
-  return { pron, opt, P, S, U, content, lineRange, ending, pairV, pairC, compare, qual, endsWord, segKey, nearSame, anchorOf, aligned, compareTails, spanKey };
+  return { pron, opt, P, S, U, content, lineRange, ending, pairV, pairC, compare, qual, endsWord, compoundHead, segKey, nearSame, anchorOf, aligned, compareTails, spanKey };
 }

@@ -60,3 +60,4 @@ export function markEndings(pron) {
   return flag;
 }
 export const isLexical = w => LEXICON.has(w.text) || LEXICON.has(w.orth);
+export const inLexicon = s => LEXICON.has(s);

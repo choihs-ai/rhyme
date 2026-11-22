@@ -46,13 +46,15 @@ export function buildResult(ctx, groups) {
   const sylMember = new Int32Array(S.length).fill(-1);
   outGroups.forEach(g => g.members.forEach((m, mi) => m.units.forEach(u => { sylGroup[u] = g.id; sylMember[u] = mi; if (m.repeat) sylRepeat[u] = 1; })));
 
-  // 화면 표시용: 같은 단어 안에서 이어지는 삽입모음 음절까지 색을 넓힌다 (flow 의 '플', best 의 '스트')
+  // 화면 표시용: 같은 단어 안에서 이어지는 삽입모음 음절까지 색을 넓힌다 (flow 의 '플', best 의 '스트').
+  // 영어·숫자는 글자와 음절이 딱 맞지 않아서, 단어 일부만 라임이어도 단어 전체를 보여 준다 (bugatti 의 'ti' 가 아니라 bugatti).
   const sylColor = Int32Array.from(sylGroup);
   const sylExt = new Uint8Array(S.length);
+  const spread = (from, to) => S[to].word === S[from].word && sylColor[to] < 0 && (S[to].ep || S[from].lang === 'en' || S[from].lang === 'num');
   outGroups.forEach(g => g.members.forEach((m, mi) => {
     let a = m.units[0], b = m.units[m.units.length - 1];
-    while (a - 1 >= 0 && S[a - 1].ep && S[a - 1].word === S[a].word && sylColor[a - 1] < 0) { a--; sylColor[a] = g.id; sylExt[a] = 1; sylMember[a] = mi; }
-    while (b + 1 < S.length && S[b + 1].ep && S[b + 1].word === S[b].word && sylColor[b + 1] < 0) { b++; sylColor[b] = g.id; sylExt[b] = 1; sylMember[b] = mi; }
+    while (a - 1 >= 0 && spread(a, a - 1)) { a--; sylColor[a] = g.id; sylExt[a] = 1; sylMember[a] = mi; }
+    while (b + 1 < S.length && spread(b, b + 1)) { b++; sylColor[b] = g.id; sylExt[b] = 1; sylMember[b] = mi; }
     m.src = srcSpan(a, b);
     m.text = pron.text.slice(m.src[0], m.src[1]);
     m.pron = S.slice(a, b + 1).map(x => x.ch).join('');

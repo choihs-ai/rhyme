@@ -6,11 +6,13 @@
  *   후보 = { a, b, L, n(근거 음절 수), d(줄 거리), par, sim, score, repeat, isEnd, alignEnd, alignStart, seed }
  */
 export function collectCandidates(ctx) {
-  const { pron, opt, P, U, content, lineRange, pairV, compare, qual, endsWord, nearSame, spanKey } = ctx;
+  const { pron, opt, P, U, content, lineRange, pairV, compare, qual, endsWord, compoundHead, nearSame, spanKey } = ctx;
   const EX = opt.exclude instanceof Set ? opt.exclude : new Set(opt.exclude || []);
   const exHit = new Set();
   const excluded = (a, L) => { if (!EX.size) return false; const k = spanKey(a, L); if (EX.has(k)) { exHit.add(k); return true; } return false; };
 
+  const oneOpen = i => !U[i].c && U[i].ws && U[i].we && U[i].lang === 'ko';
+  const weakVowels = (a, b, L) => { let n = 0; for (let k = 0; k < L; k++) if (pairV(U[a + k], U[b + k]) < 0.85) n++; return n; };
   const cands = [];
   const maxW = Math.max(P.W(opt.maxLen), P.W1end);
   for (let li = 0; li < content.length; li++) {
@@ -59,10 +61,16 @@ export function collectCandidates(ctx) {
       if (isEnd && m.par > 0 && m.c < 0.6) return null;
       // 줄 안의 1음절: 단어 끝끼리이고 받침이 닮았거나, 같은 어미가 붙은 나란한 꼴(가고/남고)
       if (!isEnd && !(alignEnd && (m.c >= 0.6 || m.par > 0))) return null;
+      // 받침 없는 한 음절 낱말(때, 게, 내)끼리는 줄 안에서 너무 흔히 겹쳐서 라임으로 치지 않는다
+      if (!isEnd && !m.par && oneOpen(ea) && oneOpen(eb)) return null;
     } else {
       if (d > P.W(n)) return null;
+      // 줄 끝끼리가 아닌 다음절 라임에 '비슷한 모음'(ㅓ/ㅗ, ㅡ/ㅜ)은 세 음절에 하나까지만.
+      //   줄 끝끼리는 길게 끌어 발음해서 비슷한 모음도 맞게 들린다 (하루를 또 보내 / 마음은 더 고돼 ○)
+      //   줄 중간은 우연이 많다 (않는 모니터 / 바닥부터 기어 ×)
+      if (n >= 3 && !isEnd && weakVowels(a, b, L) > Math.floor(n / 3)) return null;
       if (q < P.T + 0.02 * d) return null;          // 멀수록 더 닮아야 함
-      if (n === 2 && !(alignEnd || isEnd || (alignStart && (fullA || fullB)))) return null;
+      if (n === 2 && !(alignEnd || isEnd || (alignStart && (fullA || fullB) && compoundHead(a, L) && compoundHead(b, L)))) return null;
       if (n >= 3 && !(alignEnd || isEnd)) return null;  // 3음절 이상은 단어/줄 끝에서 끝나야 함
     }
     // 반복: 1음절은 같은 단어일 때, 그 밖에는 글자가 거의 같을 때
