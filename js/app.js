@@ -32,13 +32,13 @@ const state = {
   options: { ...DEFAULT_OPTIONS, ...storage.get('options', {}) },
   overrides: new Map(Object.entries(storage.get('overrides', {}))),
   theme: document.documentElement.dataset.theme || 'dark',
-  themePref: storage.get('theme', 'dark'),
+  themePref: storage.get('theme', 'system'),   // 처음에는 기기 설정(라이트/다크)을 따른다
   showPron: storage.get('showPron', false),
   showNums: storage.get('showNums', 'auto'),
   debug: storage.get('debug', true),
   exclude: new Set(storage.get('exclude', [])),
   pron: null, rhyme: null, focus: -1, tab: 'hl',
-  rec: { lang: 'all', coda: false, names: false, last: null },
+  rec: { lang: 'all', coda: false, names: false, ...storage.get('rec', {}), last: null },
   demo: false, sharedText: null, lastText: '',
 };
 
@@ -320,11 +320,16 @@ function bindEvents() {
   $('#rec-lang').addEventListener('click', e => {
     const b = e.target.closest('button[data-v]'); if (!b) return;
     state.rec.lang = b.dataset.v;
+    saveRec();
     setSeg($('#rec-lang'), b.dataset.v);
     if (state.rec.last) runRecommend();
   });
-  $('#rec-coda').addEventListener('change', e => { state.rec.coda = e.target.checked; if (state.rec.last) runRecommend(); });
-  $('#rec-names').addEventListener('change', e => { state.rec.names = e.target.checked; if (state.rec.last) runRecommend(); });
+  // 추천 설정은 기기에 기억해 둔다 (다음에 열어도 그대로)
+  setSeg($('#rec-lang'), state.rec.lang);
+  $('#rec-coda').checked = state.rec.coda;
+  $('#rec-names').checked = state.rec.names;
+  $('#rec-coda').addEventListener('change', e => { state.rec.coda = e.target.checked; saveRec(); if (state.rec.last) runRecommend(); });
+  $('#rec-names').addEventListener('change', e => { state.rec.names = e.target.checked; saveRec(); if (state.rec.last) runRecommend(); });
   $('#rec-out').addEventListener('click', e => {
     const more = e.target.closest('[data-more]');
     if (more) { more.previousElementSibling.classList.add('open'); more.remove(); return; }
@@ -434,6 +439,7 @@ function deleteOverride(word) {
 }
 
 // ───────────────────────── 추천 ─────────────────────────
+function saveRec() { const { lang, coda, names } = state.rec; storage.set('rec', { lang, coda, names }); }
 async function runRecommend() {
   const q = $('#rec-input').value.trim();
   if (!q) { toast('단어를 입력하세요'); return; }
@@ -521,14 +527,18 @@ function openSettings() {
     body.addEventListener('change', e => { if (e.target.id === 'set-debug') { state.debug = e.target.checked; storage.set('debug', state.debug); } });
   });
 }
-function applyTheme() {
+function syncTheme() {
   let t = state.themePref;
   if (t === 'system') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   state.theme = t;
   document.documentElement.dataset.theme = t;
   document.querySelector('meta[name=theme-color]').setAttribute('content', t === 'light' ? '#f4f3ef' : '#141413');
+}
+function applyTheme() {
+  syncTheme();
   renderAll();
 }
+syncTheme();
 matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', () => { if (state.themePref === 'system') applyTheme(); });
 
 // ───────────────────────── 내보내기 ─────────────────────────
